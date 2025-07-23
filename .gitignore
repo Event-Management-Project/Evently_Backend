@@ -1,0 +1,18 @@
+# Maven build output
+target/
+
+# IDE-specific files (Eclipse)
+.metadata/
+.classpath
+.factorypath
+.project
+.settings/
+
+# Operating system files
+.DS_Store
+Thumbs.db
+
+# Logs and temporary files
+*.log
+*.bak
+*.tmp
