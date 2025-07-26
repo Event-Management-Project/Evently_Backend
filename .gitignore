@@ -2,6 +2,7 @@
 target/
 
 # IDE-specific files (Eclipse)
+.idea/
 .metadata/
 .classpath
 .factorypath
