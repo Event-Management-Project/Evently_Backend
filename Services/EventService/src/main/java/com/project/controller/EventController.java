@@ -44,4 +44,77 @@ public class EventController {
 		return ResponseEntity.status(HttpStatus.CREATED)
 				.body(eventService.getPastEvent());
 	}
+
+	@GetMapping("/eventDetail/{evtId}")
+	public ResponseEntity<EventDetailDTO> getEventDetail(@PathVariable Long evtId){
+		return ResponseEntity.status(HttpStatus.CREATED)
+				.body(eventService.getEventDetails(evtId));
+	}
+	
+	@GetMapping("/organiserEvent")
+	public ResponseEntity<List<EventResponseDTO>> getEventsByOrganiserId(@RequestParam Long organiserId){
+		return ResponseEntity.status(HttpStatus.CREATED)
+				.body(eventService.getEventsByOrganiserId(organiserId));
+	}
+	
+	@GetMapping("/organiserUpcomingEvent")
+	public ResponseEntity<List<EventResponseDTO>> getUpcomingEventsByOrganiserId(@RequestParam Long organiser_id){
+		return ResponseEntity.status(HttpStatus.OK)
+				.body(eventService.getUpcomingEventsByOrganiserId(organiser_id));
+	}
+	
+	@GetMapping("/organiserPastEvent")
+	public ResponseEntity<List<EventResponseDTO>> getPastEventsByOrganiserId(@RequestParam Long organiser_id){
+		return ResponseEntity.status(HttpStatus.OK)
+				.body(eventService.getPastEventsByOrganiserId(organiser_id));
+	}
+	
+	@GetMapping("/organiserEventByDate")
+	public ResponseEntity<List<EventResponseDTO>> getEventsByOrganiserIdAndSortedByDate(@RequestParam Long organiser_id){
+		return ResponseEntity.status(HttpStatus.CREATED)
+				.body(eventService.getEventsByOrganiserIdAndSortedByDate(organiser_id));
+	}
+	
+	@GetMapping("/organiserEventByLocation/{location}")
+	public ResponseEntity<List<EventResponseDTO>> getEventsByOrganiserIdAndFilteredByLocation(@RequestParam Long organiser_id, @PathVariable String location){
+		return ResponseEntity.status(HttpStatus.CREATED)
+				.body(eventService.getEventsByOrganiserIdAndFilteredByLocation(organiser_id, location));
+	}
+	
+	@GetMapping("/organiserEventByCategory/{category_id}")
+	public ResponseEntity<List<EventResponseDTO>> getEventsByOrganiserIdAndFilteredByCategory(@RequestParam Long organiser_id, @PathVariable Long category_id){
+		return ResponseEntity.status(HttpStatus.CREATED)
+				.body(eventService.getEventsByOrganiserIdAndFilteredByCategory(organiser_id, category_id));
+	}
+	
+	@GetMapping("/organiserEventDetail/{evt_id}")
+	public ResponseEntity<List<EventResponseDTO>> getEventDetailByOrganiserId(@PathVariable Long evt_id, @RequestParam Long organiser_id){
+		return ResponseEntity.status(HttpStatus.OK)
+				.body(eventService.getEventDetailByOrganiserId(evt_id, organiser_id));
+	}
+	
+	@PutMapping("/editEvent/{evt_id}")
+	public ResponseEntity<ApiResponse> editEventDetail(@RequestBody EventCreateDTO eventDto, @PathVariable long evt_id) {
+		return ResponseEntity.status(HttpStatus.OK)
+				.body(eventService.editEventDetail(eventDto, evt_id));
+	}
+	
+	@DeleteMapping("/deleteEvent/{evt_id}")
+	public ResponseEntity<ApiResponse> deleteEvent(@PathVariable Long evt_id){
+		return ResponseEntity.status(HttpStatus.CREATED)
+				.body(eventService.deleteEvent(evt_id));
+	}
+	
+	// Get All Events
+	@GetMapping("/allEvents")
+		public ResponseEntity<List<EventResponseDTO>> getAllEvents(){
+			return ResponseEntity.status(HttpStatus.OK)
+					.body(eventService.getAllEvents());
+		}
+		
+	@GetMapping("/byEventId/{evtId}")
+	public ResponseEntity<EventResponseDTO> getEventById (@PathVariable Long evtId){
+		return ResponseEntity.status(HttpStatus.OK)
+				.body(eventService.getEventById(evtId));
+	}
 }
