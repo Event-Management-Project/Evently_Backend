@@ -6,6 +6,7 @@ import java.util.List;
 
 import com.project.dto.ApiResponse;
 import com.project.dto.EventCreateDTO;
+import com.project.dto.EventDetailDTO;
 import com.project.dto.EventResponseDTO;
 
 public interface EventService {

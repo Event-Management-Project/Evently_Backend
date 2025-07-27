@@ -11,6 +11,7 @@ import com.project.dao.EventDao;
 import com.project.dao.EventImageDao;
 import com.project.dto.ApiResponse;
 import com.project.dto.EventCreateDTO;
+import com.project.dto.EventDetailDTO;
 import com.project.dto.EventResponseDTO;
 import com.project.entities.Category;
 import com.project.entities.EventImage;
@@ -24,6 +25,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @Service
 @Transactional
