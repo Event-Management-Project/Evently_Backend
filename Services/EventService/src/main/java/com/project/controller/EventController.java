@@ -110,7 +110,7 @@ public class EventController {
 				.body(eventService.deleteEvent(evt_id));
 	}
 	
-	// Get All Events
+	
 	@GetMapping("/allEvents")
 		public ResponseEntity<List<EventResponseDTO>> getAllEvents(){
 			return ResponseEntity.status(HttpStatus.OK)
