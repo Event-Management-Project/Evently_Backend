@@ -1,4 +1,4 @@
-package com.sunbeam.controller;
+package com.project.controller;
 
 import java.util.List;
 
@@ -13,9 +13,7 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.sunbeam.dto.ApiResponse;
-import com.sunbeam.dto.EventImageDTO;
-import com.sunbeam.service.EventImageService;
+import com.project.dto.ApiResponse;
 
 import lombok.AllArgsConstructor;
 
