@@ -8,6 +8,9 @@ import com.project.dto.ApiResponse;
 import com.project.dto.EventCreateDTO;
 import com.project.dto.EventDetailDTO;
 import com.project.dto.EventResponseDTO;
+import com.project.external.entities.Booking;
+import com.project.external.entities.Customer;
+import com.project.external.entities.EventAttendee;
 
 public interface EventService {
 
@@ -31,8 +34,6 @@ public interface EventService {
 
 	List<EventResponseDTO> getEventsByOrganiserIdAndFilteredByCategory(Long organiser_id, Long category_id);
 
-	List<EventResponseDTO> getEventDetailByOrganiserId(Long evt_id, Long organiser_id);
-
 	ApiResponse deleteEvent(Long evt_id);
 
 	ApiResponse editEventDetail(EventCreateDTO eventDto, Long evt_id);
@@ -40,5 +41,14 @@ public interface EventService {
 	List<EventResponseDTO> getAllEvents();
 
 	EventResponseDTO getEventById(Long evtId);
+
+	List<EventAttendee> getEventAttendeesByOrganiserId(Long orgId);
+	
+	// ****************************************************************
+	// External Service Call
+	
+	List<Booking> getBookingByEventId(Long evtId);
+
+	Customer getCustomerById(Long cstId);
 	
 }

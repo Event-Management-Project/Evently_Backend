@@ -1,6 +1,7 @@
 package com.project.service;
 
 import org.modelmapper.ModelMapper;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,6 +17,11 @@ import com.project.dto.EventResponseDTO;
 import com.project.entities.Category;
 import com.project.entities.EventImage;
 import com.project.entities.Events;
+import com.project.external.entities.Booking;
+import com.project.external.entities.Customer;
+import com.project.external.entities.EventAttendee;
+import com.project.external.service.BookingService;
+import com.project.external.service.CustomerService;
 
 import lombok.AllArgsConstructor;
 
@@ -36,9 +42,12 @@ public class EventServiceImpl implements EventService {
 	private final CategoryDao categoryDao;
 	private final EventImageDao eventImageDao;
 	private final Cloudinary cloudinary;
+	private final BookingService bookingService;
+	private final CustomerService customerService;
 	
 	private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
 
+	// Add New Event with Primary Image for the Event
 	@Override
 	public ApiResponse addNewEvent(EventCreateDTO eventCreateDTO, Long organiser_id) {
 		Events event = new Events();
@@ -77,8 +86,7 @@ public class EventServiceImpl implements EventService {
 		return new ApiResponse("New Event Added");
 	}
 	
-	
-
+	// Fetch Upcoming Events
 	@Override
 	public List<EventResponseDTO> getUpcomingEvent() {
 		LocalDateTime currentDate = LocalDateTime.now(); 
@@ -99,6 +107,7 @@ public class EventServiceImpl implements EventService {
 		return eventResponseDto;
 	}
 
+	// Fetch Past Events
 	@Override
 	public List<EventResponseDTO> getPastEvent() {
 		LocalDateTime currentDate = LocalDateTime.now(); 
@@ -120,6 +129,7 @@ public class EventServiceImpl implements EventService {
 		return eventResponseDto;
 	}
 
+	// Fetch Events By Id
 	@Override
 	public EventDetailDTO getEventDetails(Long evt_id) {
 		Optional<Events> event = eventdao.findByIdAndIsDeletedFalse(evt_id);
@@ -133,6 +143,7 @@ public class EventServiceImpl implements EventService {
 		return eventResponse;
 	}
 
+	// Fetch Events By OrganiserId
 	@Override
 	public List<EventResponseDTO> getEventsByOrganiserId(Long organiser_id) {
 		List<EventResponseDTO> eventsResponseDto = new ArrayList<>();
@@ -152,6 +163,7 @@ public class EventServiceImpl implements EventService {
 		return eventsResponseDto;
 	}
 
+	// Fetch Upcoming Events By OrganiserId
 	@Override
 	public List<EventResponseDTO> getUpcomingEventsByOrganiserId(Long organiser_id) {
 		LocalDateTime currentDate = LocalDateTime.now();
@@ -172,6 +184,7 @@ public class EventServiceImpl implements EventService {
 		return eventsResponseDto;
 	}
 
+	// Fetch Past Events By OrganiserId
 	@Override
 	public List<EventResponseDTO> getPastEventsByOrganiserId(Long organiser_id) {
 		LocalDateTime currentDate = LocalDateTime.now();
@@ -192,6 +205,7 @@ public class EventServiceImpl implements EventService {
 		return eventsResponseDto;
 	}
 
+	// Fetch Events By OrganiserId and Sorted By Date
 	@Override
 	public List<EventResponseDTO> getEventsByOrganiserIdAndSortedByDate(Long organiser_id) {		
 		List<EventResponseDTO> eventsResponseDto = new ArrayList<>();
@@ -210,7 +224,7 @@ public class EventServiceImpl implements EventService {
 		return eventsResponseDto;
 	}
 
-	
+	// Fetch Events By OrganiserId and Filtered By Location
 	@Override
 	public List<EventResponseDTO> getEventsByOrganiserIdAndFilteredByLocation(Long organiser_id, String location) {
 		List<EventResponseDTO> eventsResponseDto = new ArrayList<>();
@@ -229,6 +243,7 @@ public class EventServiceImpl implements EventService {
 		return eventsResponseDto;
 	}
 
+	// Fetch Events By OrganiserId and Filtered By Category
 	@Override
 	public List<EventResponseDTO> getEventsByOrganiserIdAndFilteredByCategory(Long organiser_id, Long category_id) {
 		List<EventResponseDTO> eventsResponseDto = new ArrayList<>();
@@ -250,24 +265,7 @@ public class EventServiceImpl implements EventService {
 		return eventsResponseDto;
 	}
 
-	@Override
-	public List<EventResponseDTO> getEventDetailByOrganiserId(Long evt_id, Long organiser_id) {
-		List<EventResponseDTO> eventsResponseDto = new ArrayList<>();
-		List<Events> events = eventdao.findByIdAndOrganiserIdAndIsDeletedFalse(evt_id, organiser_id);
-		
-		EventResponseDTO eventResponse = null;
-		for(Events event: events) {
-			eventResponse = modelMapper.map(event, EventResponseDTO.class);
-			Category category = event.getCategory();
-
-			eventResponse.setCategoryName(category.getCategoryName());
-			eventResponse.setEventId(event.getId());
-			eventsResponseDto.add(eventResponse);
-		}
-		
-		return eventsResponseDto;
-	}
-
+	// Delete Event By ID
 	@Override
 	public ApiResponse deleteEvent(Long evt_id) {
 		LocalDateTime currentDate = LocalDateTime.now(); 
@@ -280,6 +278,7 @@ public class EventServiceImpl implements EventService {
 		return new ApiResponse("Event deleted successfully");
 	}
 
+	// Update Event
 	@Override
 	public ApiResponse editEventDetail(EventCreateDTO eventDto, Long evt_id) {
 		
@@ -287,7 +286,7 @@ public class EventServiceImpl implements EventService {
 		return null;
 	}
 
-// Get All Events
+	// Get All Events
 	@Override
 	public List<EventResponseDTO> getAllEvents() {
 		List<Events> eventList = eventdao.findAll();
@@ -313,5 +312,50 @@ public class EventServiceImpl implements EventService {
 		eventResponse.setEventId(evtId);
 		
 		return eventResponse;
+	}
+
+
+	// Fetch Event Attendee: 
+	public List<EventAttendee> getEventAttendeesByOrganiserId(Long orgId) {
+	    List<EventAttendee> eventAttendeeList = new ArrayList<>();
+
+	    List<EventResponseDTO> eventList = getEventsByOrganiserId(orgId);
+
+	    for (EventResponseDTO event : eventList) {
+	        Long evtId = event.getEventId();
+	        List<Booking> bookingList = getBookingByEventId(evtId);
+	        for (Booking booking : bookingList) {
+	            Long cstId = booking.getCstId();
+	            EventAttendee eventAttendee = new EventAttendee();
+	            Customer customer = getCustomerById(cstId);
+
+	            eventAttendee.setCustomerName(customer.getCustomerName());
+	            eventAttendee.setEmail(customer.getEmail());
+	            eventAttendee.setAttendeeCount(booking.getTotalAttendee());
+	            eventAttendee.setTicketPrice(event.getTicketPrice() * booking.getTotalAttendee());
+	            eventAttendee.setLocation(customer.getAddress());
+	            eventAttendeeList.add(eventAttendee);
+	        }
+	    }
+	    return eventAttendeeList;
+	}
+	
+	// ****************************************
+	// External Service call
+	
+	
+	@Override
+	public List<Booking> getBookingByEventId(Long evtId) {
+		ResponseEntity<List<Booking>> bookingListResponse = bookingService.getBookingByEvent(evtId);
+		List<Booking> bookingList = bookingListResponse.getBody();
+		
+		return bookingList;
+	}
+
+	@Override
+	public Customer getCustomerById(Long cstId) {
+		ResponseEntity<Customer> customerResponse = customerService.getCustomerById(cstId);
+		
+		return customerResponse.getBody();
 	}
 }

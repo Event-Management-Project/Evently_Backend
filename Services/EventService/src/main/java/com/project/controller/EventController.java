@@ -20,6 +20,7 @@ import com.project.dto.ApiResponse;
 import com.project.dto.EventCreateDTO;
 import com.project.dto.EventDetailDTO;
 import com.project.dto.EventResponseDTO;
+import com.project.external.entities.EventAttendee;
 import com.project.service.EventService;
 
 import lombok.AllArgsConstructor;
@@ -92,12 +93,6 @@ public class EventController {
 				.body(eventService.getEventsByOrganiserIdAndFilteredByCategory(organiser_id, category_id));
 	}
 	
-	@GetMapping("/organiserEventDetail/{evt_id}")
-	public ResponseEntity<List<EventResponseDTO>> getEventDetailByOrganiserId(@PathVariable Long evt_id, @RequestParam Long organiser_id){
-		return ResponseEntity.status(HttpStatus.OK)
-				.body(eventService.getEventDetailByOrganiserId(evt_id, organiser_id));
-	}
-	
 	@PutMapping("/editEvent/{evt_id}")
 	public ResponseEntity<ApiResponse> editEventDetail(@RequestBody EventCreateDTO eventDto, @PathVariable long evt_id) {
 		return ResponseEntity.status(HttpStatus.OK)
@@ -121,5 +116,14 @@ public class EventController {
 	public ResponseEntity<EventResponseDTO> getEventById (@PathVariable Long evtId){
 		return ResponseEntity.status(HttpStatus.OK)
 				.body(eventService.getEventById(evtId));
+	}
+	
+	// Event Attendee List consisting of [Customer Name , Email from Customer Service], 
+	// [attendeeCount and Price form booking service], [Location from Event Service] 
+	@GetMapping("/eventAttendee")
+	public ResponseEntity<List<EventAttendee>> getAllEventAttendee(@RequestParam Long orgId) {
+	    List<EventAttendee> eventAttendeeList = eventService.getEventAttendeesByOrganiserId(orgId);
+	    return ResponseEntity.status(HttpStatus.OK)
+	            .body(eventAttendeeList);
 	}
 }
