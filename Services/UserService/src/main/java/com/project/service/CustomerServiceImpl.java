@@ -87,4 +87,13 @@ public class CustomerServiceImpl implements CustomerService{
 	public List<Customer> getAllCustomers() {
 		return customerDao.findAll();
 	}
+	
+	@Override
+	public CustomerDto getCustomerById(Long cstId) {
+		Customer customer = customerDao.findById(cstId).orElseThrow();
+		
+		CustomerDto customerResp = modelMapper.map(customer, CustomerDto.class); 
+		
+		return customerResp;
+	}
 }

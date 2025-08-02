@@ -6,7 +6,6 @@ import com.project.service.CustomerService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -51,9 +50,13 @@ public class CustomerController {
                 .body(customerService.deleteCustomer(id));
     }
 
-
-
-
+    // Fetch Customer By ID
+    @GetMapping("/customers/{cstId}")
+    ResponseEntity<?> eventAttendees(@PathVariable Long cstId){
+        return ResponseEntity.status(HttpStatus.OK).
+                body(customerService.getCustomerById(cstId));
+    }
+    
 
 
 }

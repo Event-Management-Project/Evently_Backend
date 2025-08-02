@@ -15,7 +15,5 @@ public interface CustomerService {
     ApiResponse changePassword(Long id, String password);
     ApiResponse deleteCustomer(Long id);
 	List<Customer> getAllCustomers();
-
-
-
+	CustomerDto getCustomerById(Long cstId);
 }
