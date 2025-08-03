@@ -1,15 +1,15 @@
 package com.project.controller;
 
+import com.project.dto.OrganiserCreateDto;
 import com.project.dto.OrganiserDto;
 import com.project.dto.OrganiserLoginDto;
 import com.project.service.OrganiserService;
 
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,9 +20,9 @@ public class OrganiserController {
 //    @Autowired
     private final OrganiserService organiserService; 
 
-    @PostMapping("/organiser")
+    @PostMapping(value = "/organiser", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation( description = "Adds a new organiser to the system with basic details ")
-    ResponseEntity<?> organiserCustomer(@RequestBody OrganiserDto organiser){
+    ResponseEntity<?> organiserCustomer(@ModelAttribute OrganiserCreateDto organiser){
         return ResponseEntity.status(HttpStatus.CREATED).
                 body(organiserService.saveOrganiser(organiser));
     }

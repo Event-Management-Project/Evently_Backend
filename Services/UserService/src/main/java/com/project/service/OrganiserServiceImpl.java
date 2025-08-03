@@ -1,7 +1,10 @@
 package com.project.service;
 
+import com.cloudinary.Cloudinary;
+import com.cloudinary.utils.ObjectUtils;
 import com.project.dao.OrganiserDao;
 import com.project.dto.ApiResponse;
+import com.project.dto.OrganiserCreateDto;
 import com.project.dto.OrganiserDto;
 import com.project.dto.OrganiserLoginDto;
 
@@ -9,14 +12,13 @@ import com.project.entities.Organiser;
 import com.project.exceptions.ResourseNotFound;
 
 import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
 
+import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.context.config.ConfigDataResourceNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,16 +28,30 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 @AllArgsConstructor
 public class OrganiserServiceImpl implements OrganiserService{
-
+	private final Cloudinary cloudinary;
 
     private final OrganiserDao organiserDao; // final - immutable
     ModelMapper modelMapper;
 
     @Override
-    public ApiResponse saveOrganiser(OrganiserDto organiser) {
-    	Organiser organiser1 = modelMapper.map(organiser,Organiser.class);
-    	organiserDao.save(organiser1);
-        return new ApiResponse("organiser created "+ organiser1.getId());
+    public ApiResponse saveOrganiser(OrganiserCreateDto organiserDto) {
+    	String url = null;
+    	
+    	try {
+    		@SuppressWarnings("unchecked")
+			Map<String , Object> data = this.cloudinary.uploader().upload(organiserDto.getImage().getBytes(), ObjectUtils.emptyMap());
+        	url = (String) data.get("url");
+    	}
+    	catch(IOException e) {
+        	throw new RuntimeException("File not been able to upload");
+        }
+    	
+    	Organiser organiser = modelMapper.map(organiserDto, Organiser.class);
+    	organiser.setImageURL(url);
+    	
+    	
+    	organiserDao.save(organiser);
+        return new ApiResponse("organiser created "+ organiser.getId());
     }
 
     @Override
