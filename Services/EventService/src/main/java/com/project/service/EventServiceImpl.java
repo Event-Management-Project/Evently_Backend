@@ -4,6 +4,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
@@ -13,6 +14,7 @@ import com.project.dao.EventImageDao;
 import com.project.dto.ApiResponse;
 import com.project.dto.EventCreateDTO;
 import com.project.dto.EventDetailDTO;
+import com.project.dto.EventEditDTO;
 import com.project.dto.EventResponseDTO;
 import com.project.entities.Category;
 import com.project.entities.EventImage;
@@ -42,6 +44,8 @@ public class EventServiceImpl implements EventService {
 	private final CategoryDao categoryDao;
 	private final EventImageDao eventImageDao;
 	private final Cloudinary cloudinary;
+	private final EventImageService eventImageService;
+	
 	private final BookingService bookingService;
 	private final CustomerService customerService;
 	
@@ -280,10 +284,34 @@ public class EventServiceImpl implements EventService {
 
 	// Update Event
 	@Override
-	public ApiResponse editEventDetail(EventCreateDTO eventDto, Long evt_id) {
-		
-		
-		return null;
+	public ApiResponse editEventDetail(EventEditDTO eventDto, Long evt_id) {
+	    Optional<Events> optionalEvent = eventdao.findById(evt_id);
+
+	    if (!optionalEvent.isPresent()) {
+	        return new ApiResponse("Event not found with ID: " + evt_id);
+	    }
+
+	    Events event = optionalEvent.get();
+
+	    modelMapper.map(eventDto, event);
+
+	    Category category = categoryDao.findByCategoryName(eventDto.getCategoryName());
+
+	    LocalDateTime startDateTime = LocalDateTime.parse(eventDto.getStartDateTime(), FORMATTER);
+	    LocalDateTime endDateTime = LocalDateTime.parse(eventDto.getEndDateTime(), FORMATTER);
+
+	    event.setCategory(category);
+	    event.setStartDateTime(startDateTime);
+	    event.setEndDateTime(endDateTime);
+	    event.setRemainingCapacity(eventDto.getCapacity());
+	    event.setEventTitle(eventDto.getEvent_title());
+	    
+	    List<MultipartFile> files = eventDto.getFiles();
+	    eventImageService.addEventImage(files, evt_id);
+
+	    eventdao.save(event);
+
+	    return new ApiResponse("Event Updated");
 	}
 
 	// Get All Events

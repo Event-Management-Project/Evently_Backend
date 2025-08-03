@@ -5,7 +5,6 @@ import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -14,6 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.project.dto.ApiResponse;
+import com.project.service.EventImageService;
 
 import lombok.AllArgsConstructor;
 
@@ -21,5 +21,11 @@ import lombok.AllArgsConstructor;
 @RequestMapping("/eventImage")
 @AllArgsConstructor
 public class EventImageController {
+	private final EventImageService eventImageService;
 	
+	@PostMapping(value = "/{evtId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+	public ResponseEntity<ApiResponse> addEventImage(@RequestPart("file") List<MultipartFile> files, @PathVariable long evtId){
+		return ResponseEntity.status(HttpStatus.CREATED)
+				.body(eventImageService.addEventImage(files, evtId));
+	}
 }

@@ -19,6 +19,7 @@ public class CustomerController {
     ResponseEntity<?> getAllCustomers(){
     	return ResponseEntity.status(HttpStatus.OK).body(customerService.getAllCustomers());
     }
+    
     @PostMapping("/register")
     ResponseEntity<?> registerCustomer(@RequestBody CustomerDto customer){
         return ResponseEntity.status(HttpStatus.CREATED).
