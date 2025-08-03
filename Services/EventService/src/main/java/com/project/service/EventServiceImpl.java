@@ -324,11 +324,26 @@ public class EventServiceImpl implements EventService {
 		
 		for(Events event: eventList) {
 			eventResponseDTO = modelMapper.map(event, EventResponseDTO.class);
+			
+			Category category = event.getCategory();
+			
+			eventResponseDTO.setCategoryName(category.getCategoryName());
+			eventResponseDTO.setEventId(event.getId());
+			
+			try {
+	            EventImage eventImage = eventImageDao.findByEventAndIsPrimaryTrue(event);
+	            if (eventImage != null) {
+	                String imageUrl = eventImage.getImageUrl();
+	                eventResponseDTO.setImageUrl(imageUrl);
+	            } else {
+	                eventResponseDTO.setImageUrl(null);
+	            }
+	        } catch (Exception e) {
+	            eventResponseDTO.setImageUrl(null);
+	        }
+			
 			eventResponseList.add(eventResponseDTO);
 		}
-		
-		return eventResponseList;
-	}
 
 	@Override
 	public EventResponseDTO getEventById(Long evtId) {
