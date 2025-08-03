@@ -106,6 +106,7 @@ public class EventController {
 	}
 	
 	
+	// Get All Events
 	@GetMapping("/allEvents")
 		public ResponseEntity<List<EventResponseDTO>> getAllEvents(){
 			return ResponseEntity.status(HttpStatus.OK)
