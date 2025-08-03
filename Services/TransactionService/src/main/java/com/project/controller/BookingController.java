@@ -3,7 +3,6 @@ package com.project.controller;
 import java.util.List;
 
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.project.dto.ApiResponse;
 import com.project.dto.BookingDTO;
 import com.project.dto.BookingResponseDTO;
+import com.project.external.entities.BookingHistory;
 import com.project.service.BookingService;
 
 import org.springframework.web.bind.annotation.RequestBody;
@@ -63,5 +63,12 @@ public class BookingController {
 	public ResponseEntity<?> getBookingsByEvent(@PathVariable long eventId){
 		return ResponseEntity.ok(bookingService.getBookingsByEventId(eventId));
 	}
+	
+	@GetMapping("/bookingHistory")
+	public ResponseEntity<List<BookingHistory>> getBookingHistory(@RequestParam Long cstId) {
+	    List<BookingHistory> bookingHistoryList = bookingService.getBookingHistoryByUserId(cstId);
+	    return ResponseEntity.status(HttpStatus.OK).body(bookingHistoryList);
+	}
+	
 }
 	

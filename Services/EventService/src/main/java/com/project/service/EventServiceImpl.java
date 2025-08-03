@@ -344,6 +344,9 @@ public class EventServiceImpl implements EventService {
 			
 			eventResponseList.add(eventResponseDTO);
 		}
+		
+		return eventResponseList;
+	}
 
 	@Override
 	public EventResponseDTO getEventById(Long evtId) {

@@ -5,6 +5,8 @@ import java.util.List;
 import com.project.dto.ApiResponse;
 import com.project.dto.BookingDTO;
 import com.project.dto.BookingResponseDTO;
+import com.project.external.entities.BookingHistory;
+import com.project.external.entities.EventResponseDTO;
 
 public interface BookingService {
     
@@ -17,4 +19,8 @@ public interface BookingService {
     ApiResponse cancelBooking(long bookingId);
 
     List<BookingResponseDTO> getBookingsByEventId(Long eventId);
+    
+	EventResponseDTO getEventById(Long evtId);
+
+	List<BookingHistory> getBookingHistoryByUserId(Long cstId);
 }

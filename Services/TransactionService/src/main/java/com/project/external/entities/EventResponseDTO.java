@@ -1,16 +1,15 @@
-package com.project.dto;
+package com.project.external.entities;
 
-//import com.sunbeam.entities.Category;
-
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.ToString;
 
 @Getter
 @Setter
-@ToString
+@AllArgsConstructor
 public class EventResponseDTO {
 	private Long eventId;
+	private Long orgId;
 	private String eventTitle;
 	private String description;
 	private String startDateTime;
@@ -20,5 +19,4 @@ public class EventResponseDTO {
 	private Long remainingCapacity;
 	private double ticketPrice;
 	private String categoryName;
-	private String imageUrl;
 }
