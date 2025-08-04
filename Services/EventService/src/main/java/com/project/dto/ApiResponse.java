@@ -17,4 +17,8 @@ public class ApiResponse {
 		this.msg = message;
 		this.curTime = LocalDateTime.now();
 	}
+	
+	public ApiResponse() {
+        this.curTime = LocalDateTime.now();
+    }
 }

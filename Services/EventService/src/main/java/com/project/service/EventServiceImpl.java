@@ -22,8 +22,10 @@ import com.project.entities.Events;
 import com.project.external.entities.Booking;
 import com.project.external.entities.Customer;
 import com.project.external.entities.EventAttendee;
+import com.project.external.entities.NotificationDTO;
 import com.project.external.service.BookingService;
 import com.project.external.service.CustomerService;
+import com.project.external.service.NodeService;
 
 import lombok.AllArgsConstructor;
 
@@ -45,7 +47,7 @@ public class EventServiceImpl implements EventService {
 	private final EventImageDao eventImageDao;
 	private final Cloudinary cloudinary;
 	private final EventImageService eventImageService;
-	
+	private final NodeService nodeService;
 	private final BookingService bookingService;
 	private final CustomerService customerService;
 	
@@ -86,6 +88,15 @@ public class EventServiceImpl implements EventService {
         catch(IOException e) {
         	throw new RuntimeException("File not been able to upload");
         }
+		
+		// Add Notification for Event Adding
+		NotificationDTO notificationOrganiser = new NotificationDTO();
+		notificationOrganiser.setSubject("Event Added Successfully");
+		notificationOrganiser.setDescription("You have added the Event: "+eventCreateDTO.getEvent_title() 
+				+ "into your shelf");
+		
+		nodeService.addNotificationOrganiser(organiser_id, notificationOrganiser);
+		
 		
 		return new ApiResponse("New Event Added");
 	}
