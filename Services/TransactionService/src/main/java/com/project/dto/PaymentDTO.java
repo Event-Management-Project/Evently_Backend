@@ -10,6 +10,7 @@ import lombok.ToString;
 @Setter
 @ToString
 public class PaymentDTO {
+	private String razorpayOrderId;
 	private PaymentMethod paymentMethod;
 	private double amount;
 	private long attendeeCount;

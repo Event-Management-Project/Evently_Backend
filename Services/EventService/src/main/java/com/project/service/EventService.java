@@ -7,6 +7,7 @@ import java.util.List;
 import com.project.dto.ApiResponse;
 import com.project.dto.EventCreateDTO;
 import com.project.dto.EventDetailDTO;
+import com.project.dto.EventEditDTO;
 import com.project.dto.EventResponseDTO;
 import com.project.external.entities.Booking;
 import com.project.external.entities.Customer;
@@ -36,11 +37,11 @@ public interface EventService {
 
 	ApiResponse deleteEvent(Long evt_id);
 
-	ApiResponse editEventDetail(EventCreateDTO eventDto, Long evt_id);
+	ApiResponse editEventDetail(EventEditDTO eventDto, Long evt_id);
 
 	List<EventResponseDTO> getAllEvents();
 
-	EventResponseDTO getEventById(Long evtId);
+	EventDetailDTO getEventById(Long evtId); 
 
 	List<EventAttendee> getEventAttendeesByOrganiserId(Long orgId);
 	

@@ -13,6 +13,6 @@ import com.project.external.entities.Booking;
 @FeignClient(name = "TransactionService", url = "http://localhost:9092", configuration = FeignClientConfiguration.class)
 public interface BookingService {
 	
-	@GetMapping("/api/bookings/event/{eventId}")
+	@GetMapping("/bookings/event/{eventId}")
 	public ResponseEntity<List<Booking>> getBookingByEvent(@PathVariable Long eventId);
 }

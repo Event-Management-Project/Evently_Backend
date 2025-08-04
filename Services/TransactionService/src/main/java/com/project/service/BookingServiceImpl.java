@@ -27,20 +27,23 @@ public class BookingServiceImpl implements BookingService{
 	
 	@Override
 	public ApiResponse createBooking(BookingDTO bookingCreateDTO, long cstId, long eventId) {
-        System.out.println("Creating booking with attendees: " + bookingCreateDTO.getTotalAttendee());
+	    Booking booking = modelMapper.map(bookingCreateDTO, Booking.class);
+	    booking.setBookingDate(LocalDateTime.now());
+	    booking.setCstId(cstId);
+	    booking.setEvtId(eventId);
+	    booking.setStatus(BookingStatus.PENDING);
+	    booking.setDeleted(false);
 
-        Booking booking = modelMapper.map(bookingCreateDTO, Booking.class);
-        booking.setBookingDate(LocalDateTime.now());
-        booking.setCstId(cstId);
-        booking.setEvtId(eventId);
-        booking.setStatus(BookingStatus.CONFIRMED);
-        booking.setDeleted(false);
+	    bookingDao.save(booking);
 
-        bookingDao.save(booking);
+	    BookingResponseDTO responseDTO = modelMapper.map(booking, BookingResponseDTO.class);
 
-        return new ApiResponse("Booking Created Successfully");
-    }
-	
+	    // Optional: convert date to string format if needed
+	    responseDTO.setBookingDate(booking.getBookingDate().toString());
+
+	    return new ApiResponse("Booking Created Successfully", responseDTO);
+	}
+
 	
 	// Get Booking by User Id
 	@Override

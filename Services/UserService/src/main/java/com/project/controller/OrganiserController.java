@@ -1,7 +1,9 @@
 package com.project.controller;
 
+import com.project.dto.ChangePasswordDto;
 import com.project.dto.OrganiserDto;
 import com.project.dto.OrganiserLoginDto;
+import com.project.dto.OrganiserUpdateDto;
 import com.project.service.OrganiserService;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -16,11 +18,12 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/organiser")
 @AllArgsConstructor
+@CrossOrigin(origins = "http://localhost:5173")
 public class OrganiserController {
 //    @Autowired
     private final OrganiserService organiserService; 
 
-    @PostMapping("/organiser")
+    @PostMapping("/register")
     @Operation( description = "Adds a new organiser to the system with basic details ")
     ResponseEntity<?> organiserCustomer(@RequestBody OrganiserDto organiser){
         return ResponseEntity.status(HttpStatus.CREATED).
@@ -45,7 +48,7 @@ public class OrganiserController {
     
     @GetMapping("/organiser/{org_id}")
     @Operation(description = "Get Organiser by Organiser Id ")
-    ResponseEntity<?> getOrganiserById(@PathVariable Long org_id){
+    ResponseEntity<OrganiserDto> getOrganiserById(@PathVariable Long org_id){
         return ResponseEntity.status(HttpStatus.OK).
                 body(organiserService.getOrganiserById(org_id));
     }
@@ -73,19 +76,19 @@ public class OrganiserController {
 
     @PutMapping("/update/{org_id}")
     @Operation(description = " Update Profile ")
-    ResponseEntity<?> updateProfile(@PathVariable Long org_id, @RequestBody OrganiserDto organiserDto){
+    ResponseEntity<?> updateProfile(@PathVariable Long org_id, @RequestBody OrganiserUpdateDto organiserDto){
         return ResponseEntity.status(HttpStatus.OK).
                 body(organiserService.updateProfile(org_id,organiserDto));
     }
     
     
 
-    @PutMapping("/changePassword/{email}")
+    @PutMapping("/changePassword/{id}")
     @Operation(description = " Update Password ")
-    ResponseEntity<?>  updatePassword(@PathVariable String email,@RequestParam String password){
+    ResponseEntity<?>  updatePassword(@PathVariable Long id,@RequestBody ChangePasswordDto passwordDto){
         return ResponseEntity.status(HttpStatus.OK)
-                .body(organiserService.changePassword(email,
-                password));
+                .body(organiserService.changePassword(id,
+                		passwordDto));
     }
     
     

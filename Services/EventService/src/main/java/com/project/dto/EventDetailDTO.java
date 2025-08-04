@@ -1,6 +1,9 @@
 package com.project.dto;
 
 import java.time.LocalDateTime;
+import java.util.List;
+
+import com.project.entities.Facility;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -10,6 +13,7 @@ import lombok.ToString;
 @Setter
 @ToString
 public class EventDetailDTO {
+	private Long eventId;
 	private String eventTitle;
 	private String description;
 	private LocalDateTime startDateTime;
@@ -20,5 +24,11 @@ public class EventDetailDTO {
 	private double ticketPrice;
 	private String categoryName;
 	
-	private String imageUrl; // Store image as Base64 string
+	private List<String> imageUrl;
+	private List<String> facilities;
+	
+	private String organiserCompany;
+	private String organiserEmail;
+	private String organiserPhone;
+	private String organiserAddress;
 }

@@ -2,27 +2,26 @@ package com.project.dto;
 
 import java.util.List;
 
-import com.project.entities.EventImage;
+import org.springframework.web.multipart.MultipartFile;
 
-//import com.sunbeam.entities.Category;
-
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
-import lombok.ToString;
 
-@Getter
 @Setter
-@ToString
-public class EventResponseDTO {
-	private Long id;
-	private String eventTitle;
+@Getter
+@AllArgsConstructor
+@NoArgsConstructor
+public class EventEditDTO {
+	private String event_title;
 	private String description;
 	private String startDateTime;
 	private String endDateTime;
 	private String location;
 	private Long capacity;
-	private Long remainingCapacity;
 	private double ticketPrice;
 	private String categoryName;
-	private String eventImage;
+	
+	private List<MultipartFile> files;
 }

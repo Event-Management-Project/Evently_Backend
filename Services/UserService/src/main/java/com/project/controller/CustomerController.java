@@ -1,5 +1,6 @@
 package com.project.controller;
 
+import com.project.dto.ChangePasswordDto;
 import com.project.dto.CustomerDto;
 import com.project.dto.CustomerLoginDto;
 import com.project.service.CustomerService;
@@ -39,10 +40,10 @@ public class CustomerController {
     }
 
     @PutMapping("/changePassword/{id}")
-    ResponseEntity<?>  updatePassword(@PathVariable Long id,@RequestParam String password){
+    ResponseEntity<?>  updatePassword(@PathVariable Long id,@RequestBody ChangePasswordDto dto){
         return ResponseEntity.status(HttpStatus.OK)
                 .body(customerService.changePassword(id,
-                password));
+                dto));
     }
     @DeleteMapping("/{id}")
     ResponseEntity<?> removeCustomer(@PathVariable Long id){
