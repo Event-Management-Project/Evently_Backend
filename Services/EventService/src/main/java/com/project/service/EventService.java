@@ -49,5 +49,7 @@ public interface EventService {
 	List<Booking> getBookingByEventId(Long evtId);
 
 	Customer getCustomerById(Long cstId);
+
+	EventResponseDTO getEventById(Long evtId);
 	
 }

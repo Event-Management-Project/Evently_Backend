@@ -115,7 +115,7 @@ public class EventServiceImpl implements EventService {
 			Category category = event.getCategory();
 
 			eventResponse.setCategoryName(category.getCategoryName());
-			eventResponse.setId(event.getId());			
+			eventResponse.setEventId(event.getId());			
 			
 			EventImage primaryImage = eventImageDao.findByEventIdAndIsPrimaryTrue(event.getId());
 			if (primaryImage != null) {
@@ -144,7 +144,7 @@ public class EventServiceImpl implements EventService {
 			Category category = event.getCategory();
 
 			eventResponse.setCategoryName(category.getCategoryName());
-			eventResponse.setId(event.getId());
+			eventResponse.setEventId(event.getId());
 			
 			EventImage primaryImage = eventImageDao.findByEventIdAndIsPrimaryTrue(event.getId());
 			if (primaryImage != null) {
@@ -219,7 +219,7 @@ public class EventServiceImpl implements EventService {
 				eventResponse.setCategoryName("Uncategorized"); // Or set null
 			}
 
-			eventResponse.setId(event.getId());
+			eventResponse.setEventId(event.getId());
 			
 			EventImage primaryImage = eventImageDao.findByEventIdAndIsPrimaryTrue(event.getId());
 			if (primaryImage != null) {
@@ -249,7 +249,7 @@ public class EventServiceImpl implements EventService {
 			Category category = event.getCategory();
 
 			eventResponse.setCategoryName(category.getCategoryName());
-			eventResponse.setId(event.getId());
+			eventResponse.setEventId(event.getId());
 			
 			EventImage primaryImage = eventImageDao.findByEventIdAndIsPrimaryTrue(event.getId());
 			if (primaryImage != null) {
@@ -279,7 +279,7 @@ public class EventServiceImpl implements EventService {
 			Category category = event.getCategory();
 
 			eventResponse.setCategoryName(category.getCategoryName());
-			eventResponse.setId(event.getId());
+			eventResponse.setEventId(event.getId());
 			EventImage primaryImage = eventImageDao.findByEventIdAndIsPrimaryTrue(event.getId());
 			if (primaryImage != null) {
 				eventResponse.setImageUrl(primaryImage.getImageUrl());
@@ -305,7 +305,7 @@ public class EventServiceImpl implements EventService {
 			Category category = event.getCategory();
 
 			eventResponse.setCategoryName(category.getCategoryName());
-			eventResponse.setId(event.getId());
+			eventResponse.setEventId(event.getId());
 			EventImage primaryImage = eventImageDao.findByEventIdAndIsPrimaryTrue(event.getId());
 			if (primaryImage != null) {
 				eventResponse.setImageUrl(primaryImage.getImageUrl());
@@ -331,7 +331,7 @@ public class EventServiceImpl implements EventService {
 			Category category = event.getCategory();
 
 			eventResponse.setCategoryName(category.getCategoryName());
-			eventResponse.setId(event.getId());
+			eventResponse.setEventId(event.getId());
 			EventImage primaryImage = eventImageDao.findByEventIdAndIsPrimaryTrue(event.getId());
 			if (primaryImage != null) {
 				eventResponse.setImageUrl(primaryImage.getImageUrl());
@@ -359,7 +359,7 @@ public class EventServiceImpl implements EventService {
 			Category categoryName = event.getCategory();
 
 			eventResponse.setCategoryName(categoryName.getCategoryName());
-			eventResponse.setId(event.getId());
+			eventResponse.setEventId(event.getId());
 			EventImage primaryImage = eventImageDao.findByEventIdAndIsPrimaryTrue(event.getId());
 			if (primaryImage != null) {
 				eventResponse.setImageUrl(primaryImage.getImageUrl());
@@ -433,7 +433,7 @@ public class EventServiceImpl implements EventService {
 			Category category = event.getCategory();
 			
 			eventResponseDTO.setCategoryName(category.getCategoryName());
-			eventResponseDTO.setId(event.getId());
+			eventResponseDTO.setEventId(event.getId());
 			
 			try {
 	            EventImage eventImage = eventImageDao.findByEventAndIsPrimaryTrue(event);
@@ -453,6 +453,20 @@ public class EventServiceImpl implements EventService {
 		return eventResponseList;
 	}
 	
+
+	@Override
+	public EventResponseDTO getEventById(Long evtId) {
+		Events event = eventdao.findById(evtId).orElseThrow();
+		Category category = event.getCategory();
+
+		EventResponseDTO eventResponse = modelMapper.map(event, EventResponseDTO.class);
+		eventResponse.setCategoryName(category.getCategoryName());
+		eventResponse.setEventId(evtId);
+		eventResponse.setOrgId(event.getOrganiserId());
+		
+		return eventResponse;
+	}
+
 	// Fetch Event Attendee:
 	public List<EventAttendee> getEventAttendeesByOrganiserId(Long orgId) {
 		List<EventAttendee> eventAttendeeList = new ArrayList<>();
@@ -460,7 +474,7 @@ public class EventServiceImpl implements EventService {
 		List<EventResponseDTO> eventList = getEventsByOrganiserId(orgId);
 
 		for (EventResponseDTO event : eventList) {
-			Long evtId = event.getId();
+			Long evtId = event.getEventId();
 			List<Booking> bookingList = getBookingByEventId(evtId);
 			for (Booking booking : bookingList) {
 				Long cstId = booking.getCstId();

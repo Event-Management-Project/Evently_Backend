@@ -31,96 +31,95 @@ import lombok.AllArgsConstructor;
 @CrossOrigin(origins = "http://localhost:5173")
 @AllArgsConstructor
 public class EventController {
-	
+
 	private final EventService eventService;
-	
+
 	@PostMapping(value = "/addEvent", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<ApiResponse> addNewEvent(@ModelAttribute EventCreateDTO eventCreateDTO,  @RequestParam Long organiser_id){
-		 
-		return ResponseEntity.status(HttpStatus.CREATED)
-				.body(eventService.addNewEvent(eventCreateDTO, organiser_id));
+	public ResponseEntity<ApiResponse> addNewEvent(@ModelAttribute EventCreateDTO eventCreateDTO,
+			@RequestParam Long organiser_id) {
+
+		return ResponseEntity.status(HttpStatus.CREATED).body(eventService.addNewEvent(eventCreateDTO, organiser_id));
 	}
-	
+
 	@GetMapping("/upcomingEvent")
-	public ResponseEntity<List<EventResponseDTO>> getUpcomingEvent(){
-		return ResponseEntity.status(HttpStatus.CREATED)
-				.body(eventService.getUpcomingEvent());
+	public ResponseEntity<List<EventResponseDTO>> getUpcomingEvent() {
+		return ResponseEntity.status(HttpStatus.CREATED).body(eventService.getUpcomingEvent());
 	}
-	
+
 	@GetMapping("/pastEvent")
-	public ResponseEntity<List<EventResponseDTO>> getPastEvent(){
-		return ResponseEntity.status(HttpStatus.CREATED)
-				.body(eventService.getPastEvent());
+	public ResponseEntity<List<EventResponseDTO>> getPastEvent() {
+		return ResponseEntity.status(HttpStatus.CREATED).body(eventService.getPastEvent());
 	}
 
 	@GetMapping("/eventDetail/{evtId}")
-	public ResponseEntity<EventDetailDTO> getEventDetail(@PathVariable Long evtId){
-		return ResponseEntity.status(HttpStatus.CREATED)
-				.body(eventService.getEventDetails(evtId));
+	public ResponseEntity<EventDetailDTO> getEventDetail(@PathVariable Long evtId) {
+		return ResponseEntity.status(HttpStatus.CREATED).body(eventService.getEventDetails(evtId));
 	}
-	
+
 	@GetMapping("/organiserEvent/{organiserId}")
-	public ResponseEntity<List<EventResponseDTO>> getEventsByOrganiserId(@PathVariable Long organiserId){
-		return ResponseEntity.status(HttpStatus.CREATED)
-				.body(eventService.getEventsByOrganiserId(organiserId));
+	public ResponseEntity<List<EventResponseDTO>> getEventsByOrganiserId(@PathVariable Long organiserId) {
+		return ResponseEntity.status(HttpStatus.CREATED).body(eventService.getEventsByOrganiserId(organiserId));
 	}
-	
+
 	@GetMapping("/organiserUpcomingEvent/{organiserId}")
-	public ResponseEntity<List<EventResponseDTO>> getUpcomingEventsByOrganiserId(@RequestParam Long organiserId){
-		return ResponseEntity.status(HttpStatus.OK)
-				.body(eventService.getUpcomingEventsByOrganiserId(organiserId));
+	public ResponseEntity<List<EventResponseDTO>> getUpcomingEventsByOrganiserId(@RequestParam Long organiserId) {
+		return ResponseEntity.status(HttpStatus.OK).body(eventService.getUpcomingEventsByOrganiserId(organiserId));
 	}
-	
+
 	@GetMapping("/organiserPastEvent")
-	public ResponseEntity<List<EventResponseDTO>> getPastEventsByOrganiserId(@RequestParam Long organiser_id){
-		return ResponseEntity.status(HttpStatus.OK)
-				.body(eventService.getPastEventsByOrganiserId(organiser_id));
+	public ResponseEntity<List<EventResponseDTO>> getPastEventsByOrganiserId(@RequestParam Long organiser_id) {
+		return ResponseEntity.status(HttpStatus.OK).body(eventService.getPastEventsByOrganiserId(organiser_id));
 	}
-	
+
 	@GetMapping("/organiserEventByDate")
-	public ResponseEntity<List<EventResponseDTO>> getEventsByOrganiserIdAndSortedByDate(@RequestParam Long organiser_id){
+	public ResponseEntity<List<EventResponseDTO>> getEventsByOrganiserIdAndSortedByDate(
+			@RequestParam Long organiser_id) {
 		return ResponseEntity.status(HttpStatus.CREATED)
 				.body(eventService.getEventsByOrganiserIdAndSortedByDate(organiser_id));
 	}
-	
+
 	@GetMapping("/organiserEventByLocation/{location}")
-	public ResponseEntity<List<EventResponseDTO>> getEventsByOrganiserIdAndFilteredByLocation(@RequestParam Long organiser_id, @PathVariable String location){
+	public ResponseEntity<List<EventResponseDTO>> getEventsByOrganiserIdAndFilteredByLocation(
+			@RequestParam Long organiser_id, @PathVariable String location) {
 		return ResponseEntity.status(HttpStatus.CREATED)
 				.body(eventService.getEventsByOrganiserIdAndFilteredByLocation(organiser_id, location));
 	}
-	
+
 	@GetMapping("/organiserEventByCategory/{category_id}")
-	public ResponseEntity<List<EventResponseDTO>> getEventsByOrganiserIdAndFilteredByCategory(@RequestParam Long organiser_id, @PathVariable Long category_id){
+	public ResponseEntity<List<EventResponseDTO>> getEventsByOrganiserIdAndFilteredByCategory(
+			@RequestParam Long organiser_id, @PathVariable Long category_id) {
 		return ResponseEntity.status(HttpStatus.CREATED)
 				.body(eventService.getEventsByOrganiserIdAndFilteredByCategory(organiser_id, category_id));
 	}
-	
+
 	@PutMapping(value = "/editEvent/{evt_id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-	public ResponseEntity<ApiResponse> editEventDetail(@ModelAttribute EventEditDTO eventDto, @PathVariable Long evt_id) {
-		return ResponseEntity.status(HttpStatus.OK)
-				.body(eventService.editEventDetail(eventDto, evt_id));
+	public ResponseEntity<ApiResponse> editEventDetail(@ModelAttribute EventEditDTO eventDto,
+			@PathVariable Long evt_id) {
+		return ResponseEntity.status(HttpStatus.OK).body(eventService.editEventDetail(eventDto, evt_id));
 	}
-	
+
 	@DeleteMapping("/deleteEvent/{evt_id}")
-	public ResponseEntity<ApiResponse> deleteEvent(@PathVariable Long evt_id){
-		return ResponseEntity.status(HttpStatus.CREATED)
-				.body(eventService.deleteEvent(evt_id));
+	public ResponseEntity<ApiResponse> deleteEvent(@PathVariable Long evt_id) {
+		return ResponseEntity.status(HttpStatus.CREATED).body(eventService.deleteEvent(evt_id));
 	}
-	
-	
+
 	// Get All Events
 	@GetMapping("/allEvents")
-		public ResponseEntity<List<EventResponseDTO>> getAllEvents(){
-			return ResponseEntity.status(HttpStatus.OK)
-					.body(eventService.getAllEvents());
-		}
-	
-	// Event Attendee List consisting of [Customer Name , Email from Customer Service], 
-	// [attendeeCount and Price form booking service], [Location from Event Service] 
+	public ResponseEntity<List<EventResponseDTO>> getAllEvents() {
+		return ResponseEntity.status(HttpStatus.OK).body(eventService.getAllEvents());
+	}
+
+	@GetMapping("/byEventId/{evtId}")
+	public ResponseEntity<EventResponseDTO> getEventById(@PathVariable Long evtId) {
+		return ResponseEntity.status(HttpStatus.OK).body(eventService.getEventById(evtId));
+	}
+
+	// Event Attendee List consisting of [Customer Name , Email from Customer
+	// Service],
+	// [attendeeCount and Price form booking service], [Location from Event Service]
 	@GetMapping("/eventAttendee")
 	public ResponseEntity<List<EventAttendee>> getAllEventAttendee(@RequestParam Long orgId) {
-	    List<EventAttendee> eventAttendeeList = eventService.getEventAttendeesByOrganiserId(orgId);
-	    return ResponseEntity.status(HttpStatus.OK)
-	            .body(eventAttendeeList);
+		List<EventAttendee> eventAttendeeList = eventService.getEventAttendeesByOrganiserId(orgId);
+		return ResponseEntity.status(HttpStatus.OK).body(eventAttendeeList);
 	}
 }
