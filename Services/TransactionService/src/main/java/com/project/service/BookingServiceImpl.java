@@ -33,24 +33,40 @@ public class BookingServiceImpl implements BookingService{
 	
 	private final EventService eventService;
 	
+	// Customer Books the Event
 	@Override
 	public ApiResponse createBooking(BookingDTO bookingCreateDTO, long cstId, long eventId) {
-	    Booking booking = modelMapper.map(bookingCreateDTO, Booking.class);
-	    booking.setBookingDate(LocalDateTime.now());
-	    booking.setCstId(cstId);
-	    booking.setEvtId(eventId);
-	    booking.setStatus(BookingStatus.PENDING);
-	    booking.setDeleted(false);
+        System.out.println("Creating booking with attendees: " + bookingCreateDTO.getTotalAttendee());
 
-	    bookingDao.save(booking);
+        Booking booking = modelMapper.map(bookingCreateDTO, Booking.class);
+        booking.setBookingDate(LocalDateTime.now());
+        booking.setCstId(cstId);
+        booking.setEvtId(eventId);
+        booking.setStatus(BookingStatus.PENDING);
+        booking.setDeleted(false);
 
-	    BookingResponseDTO responseDTO = modelMapper.map(booking, BookingResponseDTO.class);
+        bookingDao.save(booking);
+        
+        EventResponseDTO event = getEventById(eventId);
+        
+        // To call notification Service
+        NotificationDTO notificationCustomer = new NotificationDTO();
+        notificationCustomer.setSubject("Booked the Event");
+        notificationCustomer.setDescription("You booked for event " + event.getEventTitle());
+        
+        NotificationDTO notificationOrganiser = new NotificationDTO();
+        notificationOrganiser.setSubject("A Customer Joined You");
+        
+        Customer customer = customerService.getCustomerById(cstId).getBody();
+        notificationOrganiser.setDescription("The Customer " + customer.getCustomerName() 
+        	+ " has booked your event " + event.getEventTitle());
 
-	    // Optional: convert date to string format if needed
-	    responseDTO.setBookingDate(booking.getBookingDate().toString());
+        // Call Notification service
+        notificationService.addNotificationCustomer(cstId, notificationCustomer);
+        notificationService.addNotificationOrganiser(event.getOrgId(), notificationOrganiser);
 
-	    return new ApiResponse("Booking Created Successfully", responseDTO);
-	}
+        return new ApiResponse("Booking Created Successfully");
+    }
 
 	
 	// Get Booking by User Id
