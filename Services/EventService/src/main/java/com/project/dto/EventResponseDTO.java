@@ -10,7 +10,7 @@ import lombok.ToString;
 @Setter
 @ToString
 public class EventResponseDTO {
-	private Long eventId;
+	private Long id;
 	private String eventTitle;
 	private String description;
 	private String startDateTime;

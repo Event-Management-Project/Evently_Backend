@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -27,6 +28,7 @@ import lombok.AllArgsConstructor;
 
 @RestController
 @RequestMapping("/event")
+@CrossOrigin(origins = "http://localhost:5173")
 @AllArgsConstructor
 public class EventController {
 	
@@ -57,16 +59,16 @@ public class EventController {
 				.body(eventService.getEventDetails(evtId));
 	}
 	
-	@GetMapping("/organiserEvent")
-	public ResponseEntity<List<EventResponseDTO>> getEventsByOrganiserId(@RequestParam Long organiserId){
+	@GetMapping("/organiserEvent/{organiserId}")
+	public ResponseEntity<List<EventResponseDTO>> getEventsByOrganiserId(@PathVariable Long organiserId){
 		return ResponseEntity.status(HttpStatus.CREATED)
 				.body(eventService.getEventsByOrganiserId(organiserId));
 	}
 	
-	@GetMapping("/organiserUpcomingEvent")
-	public ResponseEntity<List<EventResponseDTO>> getUpcomingEventsByOrganiserId(@RequestParam Long organiser_id){
+	@GetMapping("/organiserUpcomingEvent/{organiserId}")
+	public ResponseEntity<List<EventResponseDTO>> getUpcomingEventsByOrganiserId(@RequestParam Long organiserId){
 		return ResponseEntity.status(HttpStatus.OK)
-				.body(eventService.getUpcomingEventsByOrganiserId(organiser_id));
+				.body(eventService.getUpcomingEventsByOrganiserId(organiserId));
 	}
 	
 	@GetMapping("/organiserPastEvent")
@@ -112,12 +114,6 @@ public class EventController {
 			return ResponseEntity.status(HttpStatus.OK)
 					.body(eventService.getAllEvents());
 		}
-		
-	@GetMapping("/byEventId/{evtId}")
-	public ResponseEntity<EventResponseDTO> getEventById (@PathVariable Long evtId){
-		return ResponseEntity.status(HttpStatus.OK)
-				.body(eventService.getEventById(evtId));
-	}
 	
 	// Event Attendee List consisting of [Customer Name , Email from Customer Service], 
 	// [attendeeCount and Price form booking service], [Location from Event Service] 

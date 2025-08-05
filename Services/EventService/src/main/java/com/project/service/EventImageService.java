@@ -6,8 +6,12 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.project.dto.ApiResponse;
 
-public interface EventImageService {
+import com.project.dto.EventImageDto;
 
+public interface EventImageService {
 	ApiResponse addEventImage(List<MultipartFile> files, long evtId);
 
+	public List<EventImageDto> getImagesForEvent(Long eventId);
+
+	public EventImageDto getPrimaryImageForEvent(Long eventId);
 }

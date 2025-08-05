@@ -14,6 +14,13 @@ import lombok.ToString;
 public class ApiResponse {
 	private String msg;
 	private LocalDateTime curTime;
+    private Object data;
+
+    public ApiResponse(String msg, Object data) {
+        this.msg = msg;
+        this.data = data;
+    }
+
 	
 	public ApiResponse(String message) {
 		this.msg = message;

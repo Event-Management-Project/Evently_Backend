@@ -3,6 +3,7 @@ package com.project.service;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import org.modelmapper.ModelMapper;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -13,6 +14,7 @@ import com.cloudinary.utils.ObjectUtils;
 import com.project.dao.EventDao;
 import com.project.dao.EventImageDao;
 import com.project.dto.ApiResponse;
+import com.project.dto.EventImageDto;
 import com.project.entities.EventImage;
 import com.project.entities.Events;
 
@@ -26,7 +28,9 @@ public class EventImageServiceImpl implements EventImageService {
 	private final EventDao eventDao;
 	private final EventImageDao eventImageDao;
 	
-	@Override
+	private final ModelMapper modelMapper;
+    
+    @Override
 	public ApiResponse addEventImage(List<MultipartFile> files, long evtId) {
 	    Events event = eventDao.findById(evtId).orElseThrow();
 
@@ -38,7 +42,7 @@ public class EventImageServiceImpl implements EventImageService {
 
 	            String url = (String) data.get("url");
 
-	            EventImage eventImage = new EventImage(); // new instance for each image
+	            EventImage eventImage = new EventImage();
 	            eventImage.setImageUrl(url);
 	            eventImage.setPrimary(false);
 	            eventImage.setEvent(event);
@@ -51,4 +55,19 @@ public class EventImageServiceImpl implements EventImageService {
 
 	    return new ApiResponse("Event Images Added");
 	}
+
+    @Override
+    public List<EventImageDto> getImagesForEvent(Long eventId) {
+        List<EventImage> images = eventImageDao.findByEventId(eventId);
+        return images.stream()
+                     .map(image -> modelMapper.map(image, EventImageDto.class))
+                     .toList();
+    }
+
+    @Override
+    public EventImageDto getPrimaryImageForEvent(Long eventId) {
+        EventImage image = eventImageDao.findByEventIdAndIsPrimaryTrue(eventId);
+        if (image == null) return null;
+        return modelMapper.map(image, EventImageDto.class);
+    }
 }

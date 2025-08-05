@@ -26,6 +26,9 @@ public class Payment extends BaseEntity {
 	@JoinColumn(name="bkg_id")
 	private Booking bookingId;
 	
+	@Column(name = "razorpay_order_id")
+	private String razorpayOrderId;
+	
 	@Column(name="pmt_date")
 	private LocalDateTime paymentDate;
 	

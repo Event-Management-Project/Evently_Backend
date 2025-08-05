@@ -25,3 +25,4 @@ public class EventEditDTO {
 	
 	private List<MultipartFile> files;
 }
+

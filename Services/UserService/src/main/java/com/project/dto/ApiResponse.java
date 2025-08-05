@@ -12,9 +12,15 @@ import lombok.ToString;
 public class ApiResponse {
 	private String msg;
 	private LocalDateTime curTime;
-	
-	public ApiResponse(String message) {
-		this.msg = message;
-		this.curTime = LocalDateTime.now();
-	}
+
+    public ApiResponse(String msg, Object data) {
+        this.msg = msg;
+        this.curTime = LocalDateTime.now();
+    }
+
+    public ApiResponse(String msg) {
+        this.msg = msg;
+        this.curTime = LocalDateTime.now();
+    }
+
 }

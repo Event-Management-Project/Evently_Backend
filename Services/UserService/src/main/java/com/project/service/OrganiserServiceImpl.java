@@ -5,10 +5,12 @@ import com.cloudinary.utils.ObjectUtils;
 import com.project.dao.OrganiserDao;
 import com.project.dto.ApiResponse;
 import com.project.dto.OrganiserCreateDto;
+import com.project.dto.ChangePasswordDto;
 import com.project.dto.OrganiserDto;
 import com.project.dto.OrganiserLoginDto;
-
+import com.project.dto.OrganiserUpdateDto;
 import com.project.entities.Organiser;
+import com.project.exceptions.ChangePasswordException;
 import com.project.exceptions.ResourseNotFound;
 
 import lombok.AllArgsConstructor;
@@ -28,41 +30,54 @@ import org.springframework.transaction.annotation.Transactional;
 public class OrganiserServiceImpl implements OrganiserService {
 	private final Cloudinary cloudinary;
 
-	private final OrganiserDao organiserDao; // final - immutable
-	ModelMapper modelMapper;
+	private final OrganiserDao organiserDao;
+	private final ModelMapper modelMapper;
 
 	@Override
-	public ApiResponse saveOrganiser(OrganiserCreateDto organiserDto) {
-		String url = null;
+	public OrganiserDto saveOrganiser(OrganiserCreateDto organiserCreateDto) {
+	    String url = null;
 
-		try {
-			@SuppressWarnings("unchecked")
-			Map<String, Object> data = this.cloudinary.uploader().upload(organiserDto.getImage().getBytes(),
-					ObjectUtils.emptyMap());
-			url = (String) data.get("url");
-		} catch (IOException e) {
-			throw new RuntimeException("File not been able to upload");
-		}
+	    try {
+	        @SuppressWarnings("unchecked")
+	        Map<String, Object> data = this.cloudinary.uploader().upload(organiserCreateDto.getImage().getBytes(),
+	                ObjectUtils.emptyMap());
+	        url = (String) data.get("url");
+	    } catch (IOException e) {
+	        throw new RuntimeException("File not been able to upload");
+	    }
 
-		Organiser organiser = modelMapper.map(organiserDto, Organiser.class);
-		organiser.setImageURL(url);
+	    // Map directly from OrganiserCreateDto to Organiser to include password
+	    Organiser organiser = modelMapper.map(organiserCreateDto, Organiser.class);
+	    organiser.setImageURL(url);
 
-		organiserDao.save(organiser);
-		return new ApiResponse("organiser created " + organiser.getId());
+	    organiser = organiserDao.save(organiser); // persist and get generated ID
+
+	    // Prepare response DTO
+	    OrganiserDto organiserDto = new OrganiserDto();
+	    organiserDto.setOrgId(organiser.getId());
+	    organiserDto.setOrganiserCompanyName(organiser.getOrganiserCompanyName());
+	    organiserDto.setAddress(organiser.getAddress());
+	    organiserDto.setEmail(organiser.getEmail());
+	    organiserDto.setPhoneNumber(organiser.getPhoneNumber());
+
+	    return organiserDto;
 	}
 
 	@Override
-	public ApiResponse validateOrganiser(OrganiserLoginDto organiserLoginDto) {
+	public OrganiserDto validateOrganiser(OrganiserLoginDto organiserLoginDto) {
 		// get email from database
 		Organiser organiser = organiserDao.findByEmail(organiserLoginDto.getEmail())
 				.orElseThrow(() -> new ResourseNotFound("Organiser Not Found"));
 
-		// get email from dto
+		OrganiserDto organiserDto = modelMapper.map(organiser, OrganiserDto.class);
+		organiserDto.setOrgId(organiser.getId());
+
 		if (!organiser.getPassword().equals(organiserLoginDto.getPassword())) {
 			throw new ResourseNotFound("In valid password");
 		}
-		return new ApiResponse("Login successful for organiser " + organiser.getId());
+		return organiserDto;
 	}
+
 
 	@Override
 	public List<Organiser> getAllOrganisers() {
@@ -72,11 +87,11 @@ public class OrganiserServiceImpl implements OrganiserService {
 	@Override
 	public Optional<Organiser> getOrganiserById(Long org_id) {
 
-		return organiserDao.findById(org_id); // .orElseGet(()->new ConfigDataResourceNotFoundException("Not Found "));
+		return organiserDao.findById(org_id);
 	}
 
 	@Override
-	public ApiResponse updateProfile(Long id, OrganiserDto organiserDto) {
+	public ApiResponse updateProfile(Long id, OrganiserUpdateDto organiserDto) {
 		Organiser organiser = organiserDao.findById(id).orElseThrow(() -> new ResourseNotFound("organiser not found"));
 
 		// Mapping : dto --> entity
@@ -88,15 +103,27 @@ public class OrganiserServiceImpl implements OrganiserService {
 		return new ApiResponse("Organiser details updated successfully " + organiser.getId());
 	}
 
-	@Override
-	public ApiResponse changePassword(String email, String password) {
-		Organiser organiser = organiserDao.findByEmail(email)
-				.orElseThrow(() -> new ResourseNotFound("Organiser Not Found"));
+    public ApiResponse changePassword(Long id, ChangePasswordDto dto) {
+        Organiser organiser = organiserDao.findById(id)
+            .orElseThrow(() -> new ResourseNotFound("Organiser not found"));
 
-		organiser.setPassword(password);
-		organiserDao.save(organiser);
-		return new ApiResponse("Password updated successfully for " + organiser.getId());
-	}
+        if (!organiser.getPassword().equals(dto.getCurrentPassword())) {
+            throw new ChangePasswordException("Current password is incorrect");
+        }
+
+        if (!dto.getNewPassword().equals(dto.getConfirmPassword())) {
+            throw new ChangePasswordException("New password and confirm password do not match");
+        }
+
+        if (dto.getCurrentPassword().equals(dto.getNewPassword())) {
+            throw new ChangePasswordException("New password cannot be the same as the current password");
+        }
+
+        organiser.setPassword(dto.getNewPassword());
+        organiserDao.save(organiser);
+
+        return new ApiResponse("Password updated successfully for organiser ID: " + organiser.getId());
+    }
 
 	@Override
 	public ApiResponse deleteOrganiser(String org_company_name) {
@@ -107,14 +134,6 @@ public class OrganiserServiceImpl implements OrganiserService {
 		organiserDao.save(organiser);
 		return new ApiResponse("Organiser deleted successfully " + organiser.getId());
 	}
-
-//	@Override
-//	public List<Organiser> filterOrganiserContainaningAddress(String address) {
-//		
-//		 List<Organiser> organiserList = organiserDao.filterOrganiserContainaningLocation(address);
-//		
-//		return organiserList;
-//	}
 
 	@Override
 	public List<Organiser> filterOrganiserContainaningCmpName(String company_name) {

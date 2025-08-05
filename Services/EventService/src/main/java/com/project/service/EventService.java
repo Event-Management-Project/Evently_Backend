@@ -41,8 +41,6 @@ public interface EventService {
 
 	List<EventResponseDTO> getAllEvents();
 
-	EventResponseDTO getEventById(Long evtId);
-
 	List<EventAttendee> getEventAttendeesByOrganiserId(Long orgId);
 	
 	// ****************************************************************
