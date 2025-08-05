@@ -1,4 +1,4 @@
-package com.sunbeam.external.entities;
+package com.project.external.entities;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

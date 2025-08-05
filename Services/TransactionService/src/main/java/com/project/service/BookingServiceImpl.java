@@ -17,8 +17,12 @@ import com.project.dto.BookingResponseDTO;
 import com.project.entities.Booking;
 import com.project.entities.BookingStatus;
 import com.project.external.entities.BookingHistory;
+import com.project.external.entities.Customer;
 import com.project.external.entities.EventResponseDTO;
+import com.project.external.entities.NotificationDTO;
+import com.project.external.service.CustomerService;
 import com.project.external.service.EventService;
+import com.project.external.service.NotificationService;
 
 import feign.FeignException;
 import jakarta.transaction.Transactional;
@@ -32,6 +36,8 @@ public class BookingServiceImpl implements BookingService{
 	private final ModelMapper modelMapper;
 	
 	private final EventService eventService;
+	private final CustomerService customerService;
+	private final NotificationService notificationService;
 	
 	// Customer Books the Event
 	@Override

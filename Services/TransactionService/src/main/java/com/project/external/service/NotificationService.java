@@ -1,12 +1,12 @@
-package com.sunbeam.external.service;
+package com.project.external.service;
 
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 
-import com.sunbeam.dto.ApiResponse;
-import com.sunbeam.external.entities.NotificationDTO;
+import com.project.dto.ApiResponse;
+import com.project.external.entities.NotificationDTO;
 
 @FeignClient(name = "NODE-SERVICE", url = "http://localhost:4000") // Add URL if necessary
 public interface NotificationService {
