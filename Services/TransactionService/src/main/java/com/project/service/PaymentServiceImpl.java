@@ -1,7 +1,7 @@
 package com.project.service;
 
-import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 import com.project.utils.Utils;
 
@@ -20,98 +20,103 @@ import com.project.entities.Payment;
 import com.project.entities.PaymentStatus;
 import com.razorpay.Order;
 import com.razorpay.RazorpayClient;
+import com.razorpay.RazorpayException;
 
 import jakarta.transaction.Transactional;
 
 @Service
 @Transactional
 public class PaymentServiceImpl implements PaymentService {
-	@Value("${razorpay.api.key}")
-	private String apiKey;
 
-	@Value("${razorpay.api.secret}")
-	private String apiSecret;
+    private final ModelMapper modelMapper;
 
-	private final ModelMapper modelMapper;
-	private final BookingDAO bookingDao;
-	private final PaymentDAO paymentDao;
+  @Value("${razorpay.api.key}") 
+  private String apiKey;
 
-	public PaymentServiceImpl(ModelMapper modelMapper, BookingDAO bookingDao, PaymentDAO paymentDao) {
-		this.modelMapper = modelMapper;
-		this.bookingDao = bookingDao;
-		this.paymentDao = paymentDao;
-	}
+  @Value("${razorpay.api.secret}") 
+  private String apiSecret;
 
-	@Override
-	public ApiResponse makePayment(PaymentDTO dto, long bkg_id) {
-	    try {
-	        RazorpayClient razorPayClient = new RazorpayClient(apiKey, apiSecret);
+  private final BookingDAO bookingDao;
+  private final PaymentDAO paymentDao;
 
-	        Booking booking = bookingDao.findById(bkg_id)
-	            .orElseThrow(() -> new RuntimeException("Booking not found"));
+  public PaymentServiceImpl(BookingDAO bookingDao, PaymentDAO paymentDao, ModelMapper modelMapper) {
+    this.bookingDao = bookingDao;
+    this.paymentDao = paymentDao;
+    this.modelMapper = modelMapper;
+  }
 
-	        JSONObject options = new JSONObject();
-	        options.put("amount", (int) (dto.getAmount() * 100));
-	        options.put("currency", "INR");
-	        options.put("receipt", "receipt_" + System.currentTimeMillis());
+  @Override
+  public ApiResponse makePayment(PaymentDTO dto, long bkgId) {
+    // Check if there's already a pending payment for this booking
+    Optional<Payment> pending = paymentDao.findByBookingId_IdAndPaymentStatus(bkgId, PaymentStatus.PENDING);
+    if (pending.isPresent()) {
+      Payment pendingPayment = pending.get();
+      return new ApiResponse("Pending order exists", "{\"id\":\"" + pendingPayment.getRazorpayOrderId() + "\"}");
+    }
 
-	        Order order = razorPayClient.orders.create(options);
+    try {
+      RazorpayClient client = new RazorpayClient(apiKey, apiSecret);
 
-	        Payment payment = new Payment();
-	        payment.setAmount(dto.getAmount());
-	        payment.setBookingId(booking);
-	        payment.setAttendeeCount(dto.getAttendeeCount());
-	        payment.setRazorpayOrderId(order.get("id"));
-	        payment.setPaymentStatus(PaymentStatus.PENDING);
-	        payment.setPaymentMethod(dto.getPaymentMethod());
-	        payment.setPaymentDate(LocalDateTime.now());
+      Booking booking = bookingDao.findById(bkgId)
+          .orElseThrow(() -> new RuntimeException("Booking not found"));
 
-	        paymentDao.save(payment);
+      JSONObject options = new JSONObject();
+      options.put("amount", (int) (dto.getAmount() * 100)); // Amount in paise
+      options.put("currency", "INR");
+      options.put("receipt", "receipt_" + System.currentTimeMillis());
 
-	        return new ApiResponse("Order created successfully", order.toString());
+      Order order = client.orders.create(options);
 
-	    } catch (Exception e) {
-	        return new ApiResponse("Failed to create order: " + e.getMessage());
-	    }
-	}
+      Payment payment = new Payment();
+      payment.setBookingId(booking);
+      payment.setAmount(dto.getAmount());
+      payment.setAttendeeCount(dto.getAttendeeCount());
+      payment.setRazorpayOrderId(order.get("id"));
+      payment.setPaymentStatus(PaymentStatus.PENDING);
+      paymentDao.save(payment);
 
+      return new ApiResponse("Order created", order.toString());
 
-	@Override
-	public ApiResponse verifyPayment(String razorpayPaymentId, String razorpayOrderId, String razorpaySignature) {
-	    try {
-	        String generatedSignature = Utils.calculateHMAC(razorpayOrderId + "|" + razorpayPaymentId, apiSecret);
+    } catch (RazorpayException e) {
+      e.printStackTrace();
+      return new ApiResponse("Payment initiation failed: " + e.getMessage());
+    }
+  }
 
-	        if (!generatedSignature.equalsIgnoreCase(razorpaySignature)) {
-	            return new ApiResponse("Invalid payment signature");
-	        }
+  @Override
+  public ApiResponse verifyPayment(String razorpayPaymentId, String razorpayOrderId, String razorpaySignature) {
+    try {
+      // Verify signature
+      String generatedSignature = Utils.calculateHMAC(razorpayOrderId + "|" + razorpayPaymentId, apiSecret);
+      if (!generatedSignature.equals(razorpaySignature)) {
+        return new ApiResponse("Invalid signature");
+      }
 
-	        Payment payment = paymentDao.findByRazorpayOrderId(razorpayOrderId)
-	                .orElseThrow(() -> new RuntimeException("Payment order not found"));
+      Payment payment = paymentDao.findByRazorpayOrderId(razorpayOrderId)
+          .orElseThrow(() -> new RuntimeException("Payment not found"));
 
-	        if (payment.getPaymentStatus() == PaymentStatus.COMPLETED) {
-	            return new ApiResponse("Payment already verified");
-	        }
+      if (payment.getPaymentStatus() == PaymentStatus.COMPLETED) {
+        return new ApiResponse("Already verified");
+      }
 
-	        payment.setPaymentStatus(PaymentStatus.COMPLETED);
-	        payment.setPaymentDate(LocalDateTime.now());
-	        paymentDao.save(payment);
+      payment.setPaymentStatus(PaymentStatus.COMPLETED);
+      paymentDao.save(payment);
 
-	        Booking booking = payment.getBookingId();
-	        booking.setStatus(BookingStatus.CONFIRMED);
-	        bookingDao.save(booking);
+      Booking booking = payment.getBookingId();
+      booking.setStatus(BookingStatus.CONFIRMED);
+      bookingDao.save(booking);
 
-	        return new ApiResponse("Payment verified and booking confirmed.");
-	    } catch (Exception e) {
-	        return new ApiResponse("Payment verification failed: " + e.getMessage());
-	    }
-	}
+      return new ApiResponse("Payment verified & booking confirmed");
 
+    } catch (Exception e) {
+      e.printStackTrace();
+      return new ApiResponse("Verification failed: " + e.getMessage());
+    }
+  }
 
-	@Override
+  @Override
 	public List<PaymentDTO> getAllPayments() {
 		List<Payment> payments = paymentDao.findAll();
-		return payments.stream().map(payment -> modelMapper.map(payments, PaymentDTO.class)).toList();
-
+		return payments.stream().map(payment -> modelMapper.map(payment, PaymentDTO.class)).toList();
 	}
-
 }

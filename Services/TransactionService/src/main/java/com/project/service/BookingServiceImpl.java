@@ -39,7 +39,6 @@ public class BookingServiceImpl implements BookingService{
 	private final CustomerService customerService;
 	private final NotificationService notificationService;
 	
-	// Customer Books the Event
 	@Override
 	public ApiResponse createBooking(BookingDTO bookingCreateDTO, long cstId, long eventId) {
         System.out.println("Creating booking with attendees: " + bookingCreateDTO.getTotalAttendee());
@@ -71,7 +70,7 @@ public class BookingServiceImpl implements BookingService{
         notificationService.addNotificationCustomer(cstId, notificationCustomer);
         notificationService.addNotificationOrganiser(event.getOrgId(), notificationOrganiser);
 
-        return new ApiResponse("Booking Created Successfully");
+        return new ApiResponse("Booking Created Successfully", booking);
     }
 
 	
@@ -149,7 +148,7 @@ public class BookingServiceImpl implements BookingService{
 	
 	public List<BookingHistory> getBookingHistoryByUserId(Long cstId) {
 	    List<BookingHistory> bookingHistoryList = new ArrayList<>();
-	    List<BookingResponseDTO> bookingList = getBookingsByUserId(cstId); // Calling Internal Booking Service
+	    List<BookingResponseDTO> bookingList = getBookingsByUserId(cstId); 
 	    System.out.println(bookingList.toString());
 
 	    for (BookingResponseDTO booking : bookingList) {
@@ -159,8 +158,10 @@ public class BookingServiceImpl implements BookingService{
 	            continue;
 	        }
 	        try {
-	            EventResponseDTO eventResponse = getEventById(evtId); // Calling External Event Service
+	            EventResponseDTO eventResponse = getEventById(evtId); 
 	            BookingHistory bookingHistory = new BookingHistory();
+	            bookingHistory.setEvtId(evtId);
+	            bookingHistory.setBkgId(booking.getId());
 	            bookingHistory.setEventTitle(eventResponse.getEventTitle());
 	            bookingHistory.setLocation(eventResponse.getLocation());
 	            bookingHistory.setCategory(eventResponse.getCategoryName());

@@ -66,8 +66,8 @@ public class BookingController {
 		return ResponseEntity.ok(bookingService.getBookingsByEventId(eventId));
 	}
 	
-	@GetMapping("/bookingHistory")
-	public ResponseEntity<List<BookingHistory>> getBookingHistory(@RequestParam Long cstId) {
+	@GetMapping("/bookingHistory/{cstId}")
+	public ResponseEntity<List<BookingHistory>> getBookingHistory(@PathVariable Long cstId) {
 	    List<BookingHistory> bookingHistoryList = bookingService.getBookingHistoryByUserId(cstId);
 	    return ResponseEntity.status(HttpStatus.OK).body(bookingHistoryList);
 	}
