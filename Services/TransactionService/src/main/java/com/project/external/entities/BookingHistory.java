@@ -10,9 +10,11 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 public class BookingHistory {
+	private long evtId;
 	private String eventTitle;
 	private String location;
 	private String category;
+	private long bkgId;
 	private String bookingDate;
 	private Long attendee;
 	private double price;

@@ -11,6 +11,7 @@ import lombok.Setter;
 @NoArgsConstructor
 public class EventAttendee {
 	private String customerName;
+	private String eventTitle;
 	private String email;
 	private Long attendeeCount;
 	private double ticketPrice;

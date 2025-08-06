@@ -8,6 +8,7 @@ import com.project.dao.BookingDAO;
 import com.project.dao.TicketDAO;
 import com.project.dto.ApiResponse;
 import com.project.entities.Booking;
+import com.project.entities.BookingStatus;
 import com.project.entities.Ticket;
 
 import jakarta.transaction.Transactional;
@@ -17,20 +18,28 @@ import lombok.AllArgsConstructor;
 @Transactional
 @AllArgsConstructor
 public class TicketServiceImpl implements TicketService {
-//	private final ModelMapper modelMapper;
 	private final BookingDAO bookingDao;
 	private final TicketDAO ticketDao;
-	
+
 	@Override
 	public ApiResponse generateTicket(long bkg_id) {
-		Booking booking=bookingDao.findById(bkg_id).orElseThrow();
-		Ticket ticket=new Ticket();
-		ticket.setDeleted(false);
-		ticket.setIssueDate(LocalDateTime.now());
-		ticket.setBookingId(booking);
-		ticketDao.save(ticket);
-		
-		return new ApiResponse("Ticket SuccessFully Generated");
+	    Booking booking = bookingDao.findById(bkg_id).orElseThrow();
+
+	    if (booking.getStatus().equals(BookingStatus.CONFIRMED)) {
+	        if (ticketDao.existsByBookingId_Id(bkg_id)) {
+	            return new ApiResponse("Ticket already generated for this booking");
+	        }
+
+	        Ticket ticket = new Ticket();
+	        ticket.setDeleted(false);
+	        ticket.setIssueDate(LocalDateTime.now());
+	        ticket.setBookingId(booking);
+	        ticketDao.save(ticket);
+
+	        return new ApiResponse("Ticket successfully generated");
+	    }
+
+	    return new ApiResponse("Booking not confirmed. Cannot generate ticket.");
 	}
 
 }
