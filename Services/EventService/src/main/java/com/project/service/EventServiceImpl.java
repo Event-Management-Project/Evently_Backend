@@ -477,16 +477,20 @@ public class EventServiceImpl implements EventService {
 			Long evtId = event.getEventId();
 			List<Booking> bookingList = getBookingByEventId(evtId);
 			for (Booking booking : bookingList) {
+				if(booking.getStatus().equals("CONFIRMED")) {
+					
 				Long cstId = booking.getCstId();
 				EventAttendee eventAttendee = new EventAttendee();
 				Customer customer = getCustomerById(cstId);
 
 				eventAttendee.setCustomerName(customer.getCustomerName());
+				eventAttendee.setEventTitle(event.getEventTitle());
 				eventAttendee.setEmail(customer.getEmail());
 				eventAttendee.setAttendeeCount(booking.getTotalAttendee());
 				eventAttendee.setTicketPrice(event.getTicketPrice() * booking.getTotalAttendee());
 				eventAttendee.setLocation(customer.getAddress());
 				eventAttendeeList.add(eventAttendee);
+				}
 			}
 		}
 		return eventAttendeeList;

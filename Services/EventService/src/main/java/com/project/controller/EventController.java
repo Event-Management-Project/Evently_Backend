@@ -117,8 +117,8 @@ public class EventController {
 	// Event Attendee List consisting of [Customer Name , Email from Customer
 	// Service],
 	// [attendeeCount and Price form booking service], [Location from Event Service]
-	@GetMapping("/eventAttendee")
-	public ResponseEntity<List<EventAttendee>> getAllEventAttendee(@RequestParam Long orgId) {
+	@GetMapping("/eventAttendee/{orgId}")
+	public ResponseEntity<List<EventAttendee>> getAllEventAttendee(@PathVariable Long orgId) {
 		List<EventAttendee> eventAttendeeList = eventService.getEventAttendeesByOrganiserId(orgId);
 		return ResponseEntity.status(HttpStatus.OK).body(eventAttendeeList);
 	}

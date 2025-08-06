@@ -23,9 +23,11 @@ import com.razorpay.RazorpayClient;
 import com.razorpay.RazorpayException;
 
 import jakarta.transaction.Transactional;
+import lombok.AllArgsConstructor;
 
 @Service
 @Transactional
+@AllArgsConstructor
 public class PaymentServiceImpl implements PaymentService {
 
     private final ModelMapper modelMapper;
@@ -38,16 +40,12 @@ public class PaymentServiceImpl implements PaymentService {
 
   private final BookingDAO bookingDao;
   private final PaymentDAO paymentDao;
+  private final TicketService ticketService;
 
-  public PaymentServiceImpl(BookingDAO bookingDao, PaymentDAO paymentDao, ModelMapper modelMapper) {
-    this.bookingDao = bookingDao;
-    this.paymentDao = paymentDao;
-    this.modelMapper = modelMapper;
-  }
+ 
 
   @Override
   public ApiResponse makePayment(PaymentDTO dto, long bkgId) {
-    // Check if there's already a pending payment for this booking
     Optional<Payment> pending = paymentDao.findByBookingId_IdAndPaymentStatus(bkgId, PaymentStatus.PENDING);
     if (pending.isPresent()) {
       Payment pendingPayment = pending.get();
@@ -61,7 +59,7 @@ public class PaymentServiceImpl implements PaymentService {
           .orElseThrow(() -> new RuntimeException("Booking not found"));
 
       JSONObject options = new JSONObject();
-      options.put("amount", (int) (dto.getAmount() * 100)); // Amount in paise
+      options.put("amount", (int) (dto.getAmount() * 100)); 
       options.put("currency", "INR");
       options.put("receipt", "receipt_" + System.currentTimeMillis());
 
@@ -86,7 +84,6 @@ public class PaymentServiceImpl implements PaymentService {
   @Override
   public ApiResponse verifyPayment(String razorpayPaymentId, String razorpayOrderId, String razorpaySignature) {
     try {
-      // Verify signature
       String generatedSignature = Utils.calculateHMAC(razorpayOrderId + "|" + razorpayPaymentId, apiSecret);
       if (!generatedSignature.equals(razorpaySignature)) {
         return new ApiResponse("Invalid signature");
@@ -105,6 +102,8 @@ public class PaymentServiceImpl implements PaymentService {
       Booking booking = payment.getBookingId();
       booking.setStatus(BookingStatus.CONFIRMED);
       bookingDao.save(booking);
+
+      ticketService.generateTicket(booking.getId());
 
       return new ApiResponse("Payment verified & booking confirmed");
 
