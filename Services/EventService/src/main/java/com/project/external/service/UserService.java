@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import com.project.external.entities.Customer;
 import com.project.external.entities.Organiser;
 
-@FeignClient(name = "UserService", url = "http://localhost:9091", configuration = FeignClientConfiguration.class)
+@FeignClient(name = "USERSERVICE")
 public interface UserService {
 	@GetMapping("/customer/customers/{cstId}")
 	public ResponseEntity<Customer> getCustomerById(@PathVariable Long cstId);

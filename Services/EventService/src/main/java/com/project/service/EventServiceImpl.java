@@ -22,11 +22,13 @@ import com.project.entities.Events;
 import com.project.entities.Facility;
 import com.project.external.entities.Booking;
 import com.project.external.entities.Customer;
+import com.project.external.entities.CustomerReviews;
 import com.project.external.entities.EventAttendee;
 import com.project.external.entities.NotificationDTO;
 import com.project.external.service.BookingService;
 import com.project.external.service.NodeService;
 import com.project.external.entities.Organiser;
+import com.project.external.entities.Reviews;
 import com.project.external.service.UserService;
 
 import lombok.AllArgsConstructor;
@@ -56,7 +58,7 @@ public class EventServiceImpl implements EventService {
 	private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
 
 	@Override
-	public ApiResponse addNewEvent(EventCreateDTO eventCreateDTO, Long organiser_id) {
+	public EventResponseDTO addNewEvent(EventCreateDTO eventCreateDTO, Long organiser_id) {
 		Events event = new Events();
 		Category category = categoryDao.findByCategoryName(eventCreateDTO.getCategoryName());
 
@@ -74,32 +76,36 @@ public class EventServiceImpl implements EventService {
 
 		eventdao.save(event);
 
+		EventResponseDTO eventResponse = modelMapper.map(event, EventResponseDTO.class);
+		eventResponse.setEventId(event.getId());
+		eventResponse.setOrgId(event.getOrganiserId());
+		eventResponse.setCategoryName(event.getCategory().getCategoryName());
+
 		EventImage eventImage = new EventImage();
 		try {
-        	@SuppressWarnings("unchecked")
-			Map<String, Object> data = this.cloudinary.uploader().upload(eventCreateDTO.getFile().getBytes(), ObjectUtils.emptyMap());
-        	String url = (String) data.get("url");
-        	
-        	eventImage.setImageUrl(url);
-        	eventImage.setPrimary(true);
-        	eventImage.setEvent(event);
-        	
-        	eventImageDao.save(eventImage);
-        }
-        catch(IOException e) {
-        	throw new RuntimeException("File not been able to upload");
-        }
-		
+			@SuppressWarnings("unchecked")
+			Map<String, Object> data = this.cloudinary.uploader().upload(eventCreateDTO.getFile().getBytes(),
+					ObjectUtils.emptyMap());
+			String url = (String) data.get("url");
+
+			eventImage.setImageUrl(url);
+			eventImage.setPrimary(true);
+			eventImage.setEvent(event);
+
+			eventImageDao.save(eventImage);
+		} catch (IOException e) {
+			throw new RuntimeException("File not been able to upload");
+		}
+
 		// Add Notification for Event Adding
 		NotificationDTO notificationOrganiser = new NotificationDTO();
 		notificationOrganiser.setSubject("Event Added Successfully");
-		notificationOrganiser.setDescription("You have added the Event: "+eventCreateDTO.getEvent_title() 
-				+ " into your shelf");
-		
-		nodeService.addNotificationOrganiser(organiser_id, notificationOrganiser);
-		
+		notificationOrganiser
+				.setDescription("You have added the Event: " + eventCreateDTO.getEvent_title() + " into your shelf");
 
-		return new ApiResponse("New Event Added");
+		nodeService.addNotificationOrganiser(organiser_id, notificationOrganiser);
+
+		return eventResponse;
 	}
 
 	@Override
@@ -115,15 +121,16 @@ public class EventServiceImpl implements EventService {
 			Category category = event.getCategory();
 
 			eventResponse.setCategoryName(category.getCategoryName());
-			eventResponse.setEventId(event.getId());			
-			
+			eventResponse.setEventId(event.getId());
+			eventResponse.setOrgId(event.getOrganiserId());
+
 			EventImage primaryImage = eventImageDao.findByEventIdAndIsPrimaryTrue(event.getId());
 			if (primaryImage != null) {
 				eventResponse.setImageUrl(primaryImage.getImageUrl());
 			} else {
 				eventResponse.setImageUrl(null);
 			}
-			
+
 			eventResponseDto.add(eventResponse);
 		}
 
@@ -145,14 +152,14 @@ public class EventServiceImpl implements EventService {
 
 			eventResponse.setCategoryName(category.getCategoryName());
 			eventResponse.setEventId(event.getId());
-			
+
 			EventImage primaryImage = eventImageDao.findByEventIdAndIsPrimaryTrue(event.getId());
 			if (primaryImage != null) {
 				eventResponse.setImageUrl(primaryImage.getImageUrl());
 			} else {
 				eventResponse.setImageUrl(null);
 			}
-			
+
 			eventResponseDto.add(eventResponse);
 		}
 
@@ -168,40 +175,39 @@ public class EventServiceImpl implements EventService {
 		EventDetailDTO eventResponse = modelMapper.map(event, EventDetailDTO.class);
 		eventResponse.setCategoryName(category.getCategoryName());
 		eventResponse.setEventId(evtId);
-		
+
 		// Fetching Image Urls
 		List<EventImage> eventImages = eventImageDao.findByEvent(event);
 		List<String> imageUrls = new ArrayList<>();
-		for(EventImage eventImage: eventImages) {
+		for (EventImage eventImage : eventImages) {
 			String url = eventImage.getImageUrl();
-			
+
 			imageUrls.add(url);
 		}
-		
+
 		eventResponse.setImageUrl(imageUrls);
-		
+
 		// Fetching facilities
-		List<Facility> facilities = event.getFacilities();	
+		List<Facility> facilities = event.getFacilities();
 		List<String> facililityList = new ArrayList<>();
-		
-		for(Facility facility: facilities) {
+
+		for (Facility facility : facilities) {
 			String facilityName = new String();
 			facilityName = facility.getFacilityName();
 
 			facililityList.add(facilityName);
 		}
 		eventResponse.setFacilities(facililityList);
-		
+
 		// fetching Organiser
 		Organiser organiser = userService.getOrganiser(event.getOrganiserId()).getBody();
 		eventResponse.setOrganiserCompany(organiser.getOrganiserCompanyName());
 		eventResponse.setOrganiserEmail(organiser.getEmail());
 		eventResponse.setOrganiserPhone(organiser.getPhoneNumber());
 		eventResponse.setOrganiserAddress(organiser.getAddress());
-		
+
 		return eventResponse;
 	}
-
 
 	// Fetch Events By OrganiserId
 	@Override
@@ -211,7 +217,7 @@ public class EventServiceImpl implements EventService {
 
 		for (Events event : events) {
 			EventResponseDTO eventResponse = modelMapper.map(event, EventResponseDTO.class);
-			
+
 			Category category = event.getCategory();
 			if (category != null) {
 				eventResponse.setCategoryName(category.getCategoryName());
@@ -220,7 +226,7 @@ public class EventServiceImpl implements EventService {
 			}
 
 			eventResponse.setEventId(event.getId());
-			
+
 			EventImage primaryImage = eventImageDao.findByEventIdAndIsPrimaryTrue(event.getId());
 			if (primaryImage != null) {
 				eventResponse.setImageUrl(primaryImage.getImageUrl());
@@ -232,7 +238,6 @@ public class EventServiceImpl implements EventService {
 
 		return eventsResponseDto;
 	}
-
 
 	// Fetch Upcoming Events By OrganiserId
 	@Override
@@ -250,14 +255,14 @@ public class EventServiceImpl implements EventService {
 
 			eventResponse.setCategoryName(category.getCategoryName());
 			eventResponse.setEventId(event.getId());
-			
+
 			EventImage primaryImage = eventImageDao.findByEventIdAndIsPrimaryTrue(event.getId());
 			if (primaryImage != null) {
 				eventResponse.setImageUrl(primaryImage.getImageUrl());
 			} else {
 				eventResponse.setImageUrl(null);
 			}
-			
+
 			eventsResponseDto.add(eventResponse);
 		}
 
@@ -286,7 +291,7 @@ public class EventServiceImpl implements EventService {
 			} else {
 				eventResponse.setImageUrl(null);
 			}
-			
+
 			eventsResponseDto.add(eventResponse);
 		}
 
@@ -312,7 +317,7 @@ public class EventServiceImpl implements EventService {
 			} else {
 				eventResponse.setImageUrl(null);
 			}
-			
+
 			eventsResponseDto.add(eventResponse);
 		}
 
@@ -338,7 +343,7 @@ public class EventServiceImpl implements EventService {
 			} else {
 				eventResponse.setImageUrl(null);
 			}
-			
+
 			eventsResponseDto.add(eventResponse);
 		}
 
@@ -366,7 +371,7 @@ public class EventServiceImpl implements EventService {
 			} else {
 				eventResponse.setImageUrl(null);
 			}
-			
+
 			eventsResponseDto.add(eventResponse);
 		}
 
@@ -379,44 +384,61 @@ public class EventServiceImpl implements EventService {
 		LocalDateTime currentDate = LocalDateTime.now();
 
 		Events event = eventdao.findByIdAndStartDateTimeAfter(evt_id, currentDate)
-				.orElseThrow(() -> new RuntimeException("Event Cannot be deleted"));
+				.orElseThrow(() -> new RuntimeException("Event not found or has already started — cannot delete past events."));
 
 		event.setDeleted(true);
+		
+		List<Booking> bookingList = bookingService.getBookingByEvent(evt_id).getBody();
+		
+		if (bookingList != null) {
+	        for (Booking booking : bookingList) {
+	            try {
+	                bookingService.cancelBooking(booking.getId());
+	                bookingService.cancelPayment(booking.getId());
+	            } catch (Exception e) {
+	                System.err.println("Failed to cancel booking/payment for ID " + booking.getId());
+	            }
+	        }
+	    }
+		
 		eventdao.save(event);
 
-		return new ApiResponse("Event deleted successfully");
+		return new ApiResponse("Event and related bookings/payments cancelled successfully");
 	}
 
 	// Update Event
 	@Override
 	public ApiResponse editEventDetail(EventEditDTO eventDto, Long evt_id) {
-	    Optional<Events> optionalEvent = eventdao.findById(evt_id);
+		Optional<Events> optionalEvent = eventdao.findById(evt_id);
 
-	    if (!optionalEvent.isPresent()) {
-	        return new ApiResponse("Event not found with ID: " + evt_id);
+		if (!optionalEvent.isPresent()) {
+			return new ApiResponse("Event not found with ID: " + evt_id);
+		}
+
+		Events event = optionalEvent.get();
+
+		modelMapper.map(eventDto, event);
+
+		Category category = categoryDao.findByCategoryName(eventDto.getCategoryName());
+
+		LocalDateTime startDateTime = LocalDateTime.parse(eventDto.getStartDateTime(), FORMATTER);
+		LocalDateTime endDateTime = LocalDateTime.parse(eventDto.getEndDateTime(), FORMATTER);
+
+		event.setCategory(category);
+		event.setStartDateTime(startDateTime);
+		event.setEndDateTime(endDateTime);
+		event.setRemainingCapacity(eventDto.getCapacity());
+		event.setEventTitle(eventDto.getEvent_title());
+
+		List<MultipartFile> files = eventDto.getFiles();
+		
+		if (files != null && !files.isEmpty()) {
+	        eventImageService.addEventImage(files, evt_id);
 	    }
+		
+		eventdao.save(event);
 
-	    Events event = optionalEvent.get();
-
-	    modelMapper.map(eventDto, event);
-
-	    Category category = categoryDao.findByCategoryName(eventDto.getCategoryName());
-
-	    LocalDateTime startDateTime = LocalDateTime.parse(eventDto.getStartDateTime(), FORMATTER);
-	    LocalDateTime endDateTime = LocalDateTime.parse(eventDto.getEndDateTime(), FORMATTER);
-
-	    event.setCategory(category);
-	    event.setStartDateTime(startDateTime);
-	    event.setEndDateTime(endDateTime);
-	    event.setRemainingCapacity(eventDto.getCapacity());
-	    event.setEventTitle(eventDto.getEvent_title());
-	    
-	    List<MultipartFile> files = eventDto.getFiles();
-	    eventImageService.addEventImage(files, evt_id);
-
-	    eventdao.save(event);
-
-	    return new ApiResponse("Event Updated");
+		return new ApiResponse("Event Updated");
 	}
 
 	// Get All Events
@@ -429,30 +451,30 @@ public class EventServiceImpl implements EventService {
 
 		for (Events event : eventList) {
 			eventResponseDTO = modelMapper.map(event, EventResponseDTO.class);
-			
+
 			Category category = event.getCategory();
-			
+
 			eventResponseDTO.setCategoryName(category.getCategoryName());
 			eventResponseDTO.setEventId(event.getId());
-			
+			eventResponseDTO.setOrgId(event.getOrganiserId());
+
 			try {
-	            EventImage eventImage = eventImageDao.findByEventAndIsPrimaryTrue(event);
-	            if (eventImage != null) {
-	                String imageUrl = eventImage.getImageUrl();
-	                eventResponseDTO.setImageUrl(imageUrl);
-	            } else {
-	                eventResponseDTO.setImageUrl(null);
-	            }
-	        } catch (Exception e) {
-	            eventResponseDTO.setImageUrl(null);
-	        }
-			
+				EventImage eventImage = eventImageDao.findByEventAndIsPrimaryTrue(event);
+				if (eventImage != null) {
+					String imageUrl = eventImage.getImageUrl();
+					eventResponseDTO.setImageUrl(imageUrl);
+				} else {
+					eventResponseDTO.setImageUrl(null);
+				}
+			} catch (Exception e) {
+				eventResponseDTO.setImageUrl(null);
+			}
+
 			eventResponseList.add(eventResponseDTO);
 		}
 
 		return eventResponseList;
 	}
-	
 
 	@Override
 	public EventResponseDTO getEventById(Long evtId) {
@@ -461,9 +483,11 @@ public class EventServiceImpl implements EventService {
 
 		EventResponseDTO eventResponse = modelMapper.map(event, EventResponseDTO.class);
 		eventResponse.setCategoryName(category.getCategoryName());
+		eventResponse.setEndDateTime(event.getEndDateTime().toString());
+		eventResponse.setDescription(event.getDescription());
 		eventResponse.setEventId(evtId);
 		eventResponse.setOrgId(event.getOrganiserId());
-		
+
 		return eventResponse;
 	}
 
@@ -471,29 +495,108 @@ public class EventServiceImpl implements EventService {
 	public List<EventAttendee> getEventAttendeesByOrganiserId(Long orgId) {
 		List<EventAttendee> eventAttendeeList = new ArrayList<>();
 
+		if (orgId == null) {
+			throw new IllegalArgumentException("Organiser ID cannot be null.");
+		}
+
 		List<EventResponseDTO> eventList = getEventsByOrganiserId(orgId);
+		if (eventList == null || eventList.isEmpty()) {
+			return eventAttendeeList;
+		}
 
 		for (EventResponseDTO event : eventList) {
+			if (event == null || event.getEventId() == null) {
+				continue;
+			}
+
 			Long evtId = event.getEventId();
 			List<Booking> bookingList = getBookingByEventId(evtId);
-			for (Booking booking : bookingList) {
-				if(booking.getStatus().equals("CONFIRMED")) {
-					
-				Long cstId = booking.getCstId();
-				EventAttendee eventAttendee = new EventAttendee();
-				Customer customer = getCustomerById(cstId);
+			if (bookingList == null || bookingList.isEmpty()) {
+				continue;
+			}
 
+			for (Booking booking : bookingList) {
+				if (booking == null || !"CONFIRMED".equals(booking.getStatus())) {
+					continue;
+				}
+
+				Long cstId = booking.getCstId();
+				if (cstId == null) {
+					continue;
+				}
+
+				Customer customer = getCustomerById(cstId);
+				if (customer == null)
+					continue;
+
+				EventAttendee eventAttendee = new EventAttendee();
 				eventAttendee.setCustomerName(customer.getCustomerName());
 				eventAttendee.setEventTitle(event.getEventTitle());
 				eventAttendee.setEmail(customer.getEmail());
 				eventAttendee.setAttendeeCount(booking.getTotalAttendee());
 				eventAttendee.setTicketPrice(event.getTicketPrice() * booking.getTotalAttendee());
 				eventAttendee.setLocation(customer.getAddress());
+
 				eventAttendeeList.add(eventAttendee);
-				}
 			}
 		}
+
 		return eventAttendeeList;
+	}
+
+	@Override
+	public List<CustomerReviews> getCustomerReviews(Long orgId) {
+		List<CustomerReviews> customerReviewsList = new ArrayList<>();
+
+		List<EventResponseDTO> eventResponseList = getEventsByOrganiserId(orgId);
+
+		for (EventResponseDTO eventResponse : eventResponseList) {
+
+			try {
+				Events event = eventdao.findById(eventResponse.getEventId())
+						.orElseThrow(() -> new IllegalArgumentException("Event not found with ID: " + eventResponse.getEventId()));
+
+				List<Reviews> reviewList = getReviewsByEventId(event.getId());
+				if (reviewList == null || reviewList.isEmpty()) {
+					return customerReviewsList;
+				}
+
+				for (Reviews review : reviewList) {
+					try {
+						String cstId = review.getCustomerId();
+						if (cstId == null || cstId.isEmpty()) {
+							continue;
+						}
+
+						Long customerId = Long.valueOf(cstId);
+						Customer customer = getCustomerById(customerId);
+						if (customer == null) {
+							continue;
+						}
+
+						CustomerReviews customerReviews = new CustomerReviews();
+						customerReviews.setCustomerName(customer.getCustomerName());
+						customerReviews.setEmail(customer.getEmail());
+						customerReviews.setEventTitle(event.getEventTitle());
+						customerReviews.setStar(review.getStar());
+						customerReviews.setSubject(review.getSubject());
+						customerReviews.setDescription(review.getDescription());
+
+						customerReviewsList.add(customerReviews);
+
+					} catch (NumberFormatException e) {
+						System.err.println("Invalid customer ID format: " + review.getCustomerId());
+					} catch (Exception e) {
+						System.err.println("Error processing review: " + e.getMessage());
+					}
+				}
+
+			} catch (Exception e) {
+				System.err.println("Error fetching customer reviews: " + e.getMessage());
+			}
+		}
+
+		return customerReviewsList;
 	}
 
 	// ****************************************
@@ -512,5 +615,12 @@ public class EventServiceImpl implements EventService {
 		ResponseEntity<Customer> customerResponse = userService.getCustomerById(cstId);
 
 		return customerResponse.getBody();
+	}
+
+	@Override
+	public List<Reviews> getReviewsByEventId(Long eventid) {
+		ResponseEntity<List<Reviews>> reviewList = nodeService.getUserReviews(eventid);
+
+		return reviewList.getBody();
 	}
 }

@@ -47,6 +47,7 @@ public class FacilityServiceImpl implements FacilityService {
 		
 		for(Facility facility: facilityList) {
 			facilityResponse = modelMapper.map(facility, FacilityDTO.class);
+			facilityResponse.setFst_id(facility.getId());
 			
 			facilityResponseList.add(facilityResponse);
 		}

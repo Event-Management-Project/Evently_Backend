@@ -2,7 +2,6 @@ const express = require('express');
 const router = express.Router();
 const Notification = require('../models/notification');
 
-// POST a notification
 router.post('/customer', async (req, res) => {
     const customerId = req.headers['customerid'];
 
@@ -10,7 +9,6 @@ router.post('/customer', async (req, res) => {
         return res.status(400).json({ message: 'customerId is required in headers' });
     }
 
-    // Create a new review
     const notification = new Notification({
         userId: customerId,
         subject: req.body.subject,
@@ -20,7 +18,7 @@ router.post('/customer', async (req, res) => {
 
     try {
         const savedNotification = await notification.save();
-        res.status(201).json({message: 'Notification added successfully'});
+        res.status(201).json({ message: 'Notification added successfully' });
     } catch (err) {
         res.status(500).json({ message: err.message });
     }
@@ -49,39 +47,68 @@ router.post('/organiser', async (req, res) => {
     }
 });
 
-router.get('/getNotificationCustomer', async(req, res) =>{
+router.get('/getNotificationCustomer', async (req, res) => {
     const customerId = req.headers['customerid'];
-        if (!customerId || customerId.length < 1) {
-            return res.status(400).json({ message: 'Invalid customer ID format' });
+    if (!customerId || customerId.length < 1) {
+        return res.status(400).json({ message: 'Invalid customer ID format' });
+    }
+
+    try {
+        const notification = await Notification.find({ userId: customerId.toString(), role: "Customer" });
+        if (notification.length === 0) {
+            return res.status(404).json({ message: 'No Notification found for this customer' });
         }
-    
-        try {
-            const notification = await Notification.find({ userId: customerId, role: "Customer" });
-            if (notification.length === 0) {
-                return res.status(404).json({ message: 'No Notification found for this customer' });
-            }
-            res.json(notification);
-        } catch (err) {
-            res.status(500).json({ message: err.message });
-        }
+        res.json(notification);
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
 })
 
-router.get('/getNotificationOrganiser', async(req, res) =>{
+router.get('/getNotificationOrganiser', async (req, res) => {
     const organiserId = req.headers['organiserid'];
-        if (!organiserId || organiserId.length < 1) {
-            return res.status(400).json({ message: 'Invalid customer ID format' });
-        }
-    
-        try {
-            const notification = await Notification.find({ userId: organiserId, role: "Organiser" });
-            if (notification.length === 0) {
-                return res.status(404).json({ message: 'No Notification found for this customer' });
-            }
-            res.json(notification);
-        } catch (err) {
-            res.status(500).json({ message: err.message });
-        }
-})
+    console.log("Fetching notifications for organiserId:", organiserId);
+
+    if (!organiserId || organiserId.length < 1) {
+        return res.status(400).json({ message: 'Invalid organiser ID format' });
+    }
+
+    try {
+        const notification = await Notification.find({
+            userId: organiserId.toString(),
+            role: "Organiser"
+        });
+
+        res.json(notification);
+    } catch (err) {
+        console.error("Error in getNotificationOrganiser:", err);
+        res.status(500).json({ message: err.message });
+    }
+});
+
+router.put("/markAsRead", async (req, res) => {
+  const { id } = req.body;
+
+  if (!id) {
+    return res.status(400).json({ message: "Notification id is required" });
+  }
+
+  try {
+    const notification = await Notification.findById(id);
+    if (!notification) {
+      return res.status(404).json({ message: "Notification not found" });
+    }
+
+    // Mark as read
+    notification.isRead = true;
+    await notification.save();
+
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+
 
 
 module.exports = router;

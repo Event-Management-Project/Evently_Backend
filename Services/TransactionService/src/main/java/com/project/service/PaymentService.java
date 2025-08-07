@@ -10,4 +10,5 @@ public interface PaymentService {
 	ApiResponse makePayment(PaymentDTO paymentDto,long bkg_id);
 	ApiResponse verifyPayment(String razorpayPaymentId, String razorpayOrderId, String razorpaySignature);
 	List<PaymentDTO> getAllPayments();
+	ApiResponse cancelPayment(long bookingId);
 }

@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 
 import com.project.external.entities.EventResponseDTO;
 
-@FeignClient(name = "EventService", url = "http://localhost:9090", configuration = FeignClientConfiguration.class)
+@FeignClient(name = "EVENTSERVICE")
 public interface EventService {
 	@GetMapping("/event/byEventId/{evtId}")
 	public ResponseEntity<EventResponseDTO> getEventById(@PathVariable("evtId") Long evtId);

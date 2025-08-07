@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import com.project.dto.ApiResponse;
 import com.project.external.entities.NotificationDTO;
 
-@FeignClient(name = "NODE-SERVICE", url = "http://localhost:4000") // Add URL if necessary
+@FeignClient(name = "NODE-SERVICE")
 public interface NotificationService {
 
     @PostMapping(value = "/notification/customer", consumes = "application/json")

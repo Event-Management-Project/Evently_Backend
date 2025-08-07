@@ -11,11 +11,13 @@ import com.project.dto.EventEditDTO;
 import com.project.dto.EventResponseDTO;
 import com.project.external.entities.Booking;
 import com.project.external.entities.Customer;
+import com.project.external.entities.CustomerReviews;
 import com.project.external.entities.EventAttendee;
+import com.project.external.entities.Reviews;
 
 public interface EventService {
 
-	ApiResponse addNewEvent(EventCreateDTO eventCreateDTO, Long organiser_id);
+	EventResponseDTO addNewEvent(EventCreateDTO eventCreateDTO, Long organiser_id);
 
 	List<EventResponseDTO> getUpcomingEvent();
 	
@@ -43,6 +45,8 @@ public interface EventService {
 
 	List<EventAttendee> getEventAttendeesByOrganiserId(Long orgId);
 	
+	List<CustomerReviews> getCustomerReviews(Long orgId);
+	
 	// ****************************************************************
 	// External Service Call
 	
@@ -51,5 +55,7 @@ public interface EventService {
 	Customer getCustomerById(Long cstId);
 
 	EventResponseDTO getEventById(Long evtId);
+
+	List<Reviews> getReviewsByEventId(Long eventid);
 	
 }

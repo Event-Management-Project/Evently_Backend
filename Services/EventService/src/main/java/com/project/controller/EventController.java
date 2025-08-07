@@ -21,6 +21,7 @@ import com.project.dto.EventCreateDTO;
 import com.project.dto.EventDetailDTO;
 import com.project.dto.EventEditDTO;
 import com.project.dto.EventResponseDTO;
+import com.project.external.entities.CustomerReviews;
 import com.project.external.entities.EventAttendee;
 import com.project.service.EventService;
 
@@ -35,7 +36,7 @@ public class EventController {
 	private final EventService eventService;
 
 	@PostMapping(value = "/addEvent", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<ApiResponse> addNewEvent(@ModelAttribute EventCreateDTO eventCreateDTO,
+	public ResponseEntity<EventResponseDTO> addNewEvent(@ModelAttribute EventCreateDTO eventCreateDTO,
 			@RequestParam Long organiser_id) {
 
 		return ResponseEntity.status(HttpStatus.CREATED).body(eventService.addNewEvent(eventCreateDTO, organiser_id));
@@ -98,7 +99,7 @@ public class EventController {
 		return ResponseEntity.status(HttpStatus.OK).body(eventService.editEventDetail(eventDto, evt_id));
 	}
 
-	@DeleteMapping("/deleteEvent/{evt_id}")
+	@PutMapping("/deleteEvent/{evt_id}")
 	public ResponseEntity<ApiResponse> deleteEvent(@PathVariable Long evt_id) {
 		return ResponseEntity.status(HttpStatus.CREATED).body(eventService.deleteEvent(evt_id));
 	}
@@ -122,4 +123,13 @@ public class EventController {
 		List<EventAttendee> eventAttendeeList = eventService.getEventAttendeesByOrganiserId(orgId);
 		return ResponseEntity.status(HttpStatus.OK).body(eventAttendeeList);
 	}
+	
+	
+	@GetMapping("/customerReviews/{orgId}")
+	public ResponseEntity<List<CustomerReviews>> getCustomerReviews(@PathVariable Long orgId){
+		List<CustomerReviews> customerReviews = eventService.getCustomerReviews(orgId);
+		return ResponseEntity.status(HttpStatus.OK)
+	            .body(customerReviews);
+	}
+	
 }

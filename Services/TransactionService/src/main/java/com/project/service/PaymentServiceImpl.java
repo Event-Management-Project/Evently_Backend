@@ -24,10 +24,11 @@ import com.razorpay.RazorpayException;
 
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 @Service
 @Transactional
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class PaymentServiceImpl implements PaymentService {
 
     private final ModelMapper modelMapper;
@@ -118,4 +119,15 @@ public class PaymentServiceImpl implements PaymentService {
 		List<Payment> payments = paymentDao.findAll();
 		return payments.stream().map(payment -> modelMapper.map(payment, PaymentDTO.class)).toList();
 	}
+
+@Override
+public ApiResponse cancelPayment(long bookingId) {
+	Payment payment = paymentDao.findByBookingId_IdAndPaymentStatus(bookingId, PaymentStatus.COMPLETED).orElseThrow();
+	
+	payment.setDeleted(true);
+	payment.setPaymentStatus(PaymentStatus.CANCELLED);
+	paymentDao.save(payment);
+	
+	return new ApiResponse("Payment Cancelled");
+}
 }

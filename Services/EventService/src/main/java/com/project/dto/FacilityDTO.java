@@ -8,5 +8,6 @@ import lombok.ToString;
 @Setter
 @ToString
 public class FacilityDTO {
+	private Long fst_id;
 	private String facilityName;
 }
