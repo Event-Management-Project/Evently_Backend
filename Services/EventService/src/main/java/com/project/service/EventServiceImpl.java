@@ -394,6 +394,11 @@ public class EventServiceImpl implements EventService {
 		Events event = eventdao.findByIdAndStartDateTimeAfter(evt_id, currentDate)
 				.orElseThrow(() -> new RuntimeException("Event not found or has already started — cannot delete past events."));
 
+		List<EventImage> eventImageList = eventImageDao.findByEventId(evt_id);
+		for(EventImage eventImage: eventImageList) {
+			eventImageDao.deleteById(eventImage.getId());
+		}
+		
 		event.setDeleted(true);
 		
 		List<Booking> bookingList = bookingService.getBookingByEvent(evt_id).getBody();
