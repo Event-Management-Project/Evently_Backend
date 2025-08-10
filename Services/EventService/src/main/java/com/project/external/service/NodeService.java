@@ -1,6 +1,7 @@
 package com.project.external.service;
 
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.ResponseEntity;
@@ -13,10 +14,10 @@ import com.project.dto.ApiResponse;
 import com.project.external.entities.NotificationDTO;
 import com.project.external.entities.Reviews;
 
-@FeignClient(name = "NODE-SERVICE", url = "http://localhost:4000")
+@FeignClient(name = "NODE-SERVICE")
 public interface NodeService {
-	@GetMapping("/reviews/event")
-	public ResponseEntity<List<Reviews>> getUserReviews(@RequestHeader("eventId") Long eventId);
+	@PostMapping("/reviews/event")
+	public ResponseEntity<List<Reviews>> getUserReviews(@RequestBody Map<String, Long> request);
 	
 	@PostMapping(value = "/notification/customer", consumes = "application/json")
     ApiResponse addNotificationCustomer(

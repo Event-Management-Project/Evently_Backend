@@ -1,6 +1,7 @@
 package com.project.service;
 
 import java.util.List;
+import java.util.Map;
 
 //import org.springframework.http.ResponseEntity;
 
@@ -13,6 +14,7 @@ import com.project.external.entities.Booking;
 import com.project.external.entities.Customer;
 import com.project.external.entities.CustomerReviews;
 import com.project.external.entities.EventAttendee;
+import com.project.external.entities.OrganiserDashboardDTO;
 import com.project.external.entities.Reviews;
 
 public interface EventService {
@@ -57,5 +59,11 @@ public interface EventService {
 	EventResponseDTO getEventById(Long evtId);
 
 	List<Reviews> getReviewsByEventId(Long eventid);
+	
+	OrganiserDashboardDTO getOrganiserDashboard(Long orgId);
+
+	Map<String, Long> getMonthlyEvents(Long orgId);
+
+	Map<String, Long> getMonthlyRevenue(Long orgId);
 	
 }
