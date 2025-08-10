@@ -16,6 +16,7 @@ import java.util.Optional;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -33,12 +34,12 @@ public class OrganiserController {
                 body(organiserService.saveOrganiser(organiser));
     }
 
-    @PostMapping("/login")
-    @Operation( description = "Login organiser")
-    ResponseEntity<OrganiserDto> loginOrganiser(@RequestBody OrganiserLoginDto organiserLoginDto ){
-        return ResponseEntity.status(HttpStatus.OK).
-                body(organiserService.validateOrganiser(organiserLoginDto));
-    }
+//    @PostMapping("/login")
+//    @Operation( description = "Login organiser")
+//    ResponseEntity<OrganiserDto> loginOrganiser(@RequestBody OrganiserLoginDto organiserLoginDto ){
+//        return ResponseEntity.status(HttpStatus.OK).
+//                body(organiserService.validateOrganiser(organiserLoginDto));
+//    }
     
     @GetMapping("/allorganisers")
     @Operation(description = " Get All Organisers ")
@@ -47,7 +48,7 @@ public class OrganiserController {
                 body(organiserService.getAllOrganisers());
     }
     
-    
+    @PreAuthorize("hasAnyRole('ORGANISER', 'CUSTOMER')")
     @GetMapping("/organiser/{org_id}")
     @Operation(description = "Get Organiser by Organiser Id ")
     ResponseEntity<Optional<Organiser>> getOrganiserById(@PathVariable Long org_id){
@@ -95,10 +96,10 @@ public class OrganiserController {
     
     
     // Soft Delete 
-    @DeleteMapping("/{org_company_name}")
+    @DeleteMapping("/{id}")
     @Operation(description = " Soft Delete ")
-    ResponseEntity<?> removeCustomer(@PathVariable String org_company_name){
+    ResponseEntity<?> removeCustomer(@PathVariable Long id){
         return  ResponseEntity.status(HttpStatus.OK)
-                .body(organiserService.deleteOrganiser(org_company_name));
+                .body(organiserService.deleteOrganiser(id));
     }
 }

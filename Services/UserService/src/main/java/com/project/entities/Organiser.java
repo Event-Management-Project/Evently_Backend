@@ -29,4 +29,8 @@ public class Organiser extends BaseEntity{
 
 //    @Transient
 //    List<Events> events;
+    
+    @Transient // Used only in Java, not saved in DB
+    private UserRole role;
+    
 }

@@ -4,6 +4,7 @@ import com.project.dto.ChangePasswordDto;
 import com.project.dto.CustomerCreateDto;
 import com.project.dto.CustomerDto;
 import com.project.dto.CustomerLoginDto;
+import com.project.dto.JwtResponse;
 import com.project.service.CustomerService;
 
 import lombok.AllArgsConstructor;
@@ -11,6 +12,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -26,16 +28,16 @@ public class CustomerController {
     }
     
     @PostMapping("/register")
-    ResponseEntity<CustomerDto> registerCustomer(@RequestBody CustomerCreateDto customer){
+    ResponseEntity<CustomerDto> registerCustomer(@RequestBody CustomerCreateDto customerdto){
         return ResponseEntity.status(HttpStatus.CREATED).
-                body(customerService.saveCustomer(customer));
+                body(customerService.saveCustomer(customerdto));
     }
 
-    @PostMapping("/login")
-    ResponseEntity<CustomerDto> loginCustomer(@RequestBody CustomerLoginDto customerLoginDto ){
-        return ResponseEntity.status(HttpStatus.OK).
-                body(customerService.validateCustomer(customerLoginDto));
-    }
+//    @PostMapping("/login")
+//    ResponseEntity<CustomerDto> loginCustomer(@RequestBody JwtResponse customerLoginDto ){
+//        return ResponseEntity.status(HttpStatus.OK).
+//                body(customerService.validateCustomer(customerLoginDto));
+//    }
 
 
     @PutMapping("/update/{customerId}")
@@ -56,6 +58,7 @@ public class CustomerController {
                 .body(customerService.deleteCustomer(id));
     }
 
+    @PreAuthorize("hasAnyRole('ORGANISER', 'CUSTOMER')")
     // Fetch Customer By ID
     @GetMapping("/customers/{cstId}")
     ResponseEntity<?> eventAttendees(@PathVariable Long cstId){

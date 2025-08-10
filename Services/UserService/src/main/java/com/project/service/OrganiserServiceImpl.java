@@ -1,11 +1,27 @@
 package com.project.service;
 
+import org.springframework.security.authentication.AuthenticationManager;
+import org.modelmapper.ModelMapper;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.context.config.ConfigDataResourceNotFoundException;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.web.bind.annotation.*;
+import com.project.config.JwtUtil;
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
 import com.project.dao.OrganiserDao;
 import com.project.dto.ApiResponse;
 import com.project.dto.OrganiserCreateDto;
 import com.project.dto.ChangePasswordDto;
+import com.project.dto.JwtRequest;
+import com.project.dto.JwtResponse;
 import com.project.dto.OrganiserDto;
 import com.project.dto.OrganiserLoginDto;
 import com.project.dto.OrganiserUpdateDto;
@@ -21,6 +37,8 @@ import java.util.Map;
 import java.util.Optional;
 
 import org.modelmapper.ModelMapper;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,8 +48,11 @@ import org.springframework.transaction.annotation.Transactional;
 public class OrganiserServiceImpl implements OrganiserService {
 	private final Cloudinary cloudinary;
 
+    private final AuthenticationManager authenticationManager;
+    private final JwtUtil jwtUtil;
 	private final OrganiserDao organiserDao;
 	private final ModelMapper modelMapper;
+	private final PasswordEncoder passwordEncoder;
 
 	@Override
 	public OrganiserDto saveOrganiser(OrganiserCreateDto organiserCreateDto) {
@@ -39,15 +60,21 @@ public class OrganiserServiceImpl implements OrganiserService {
 
 	    try {
 	        @SuppressWarnings("unchecked")
-	        Map<String, Object> data = this.cloudinary.uploader().upload(organiserCreateDto.getImage().getBytes(),
-	                ObjectUtils.emptyMap());
+	        Map<String, Object> data = this.cloudinary.uploader().upload(
+	                organiserCreateDto.getImage().getBytes(),
+	                ObjectUtils.emptyMap()
+	        );
 	        url = (String) data.get("url");
 	    } catch (IOException e) {
 	        throw new RuntimeException("File not been able to upload");
 	    }
 
-	    // Map directly from OrganiserCreateDto to Organiser to include password
+	    // Map from DTO to entity
 	    Organiser organiser = modelMapper.map(organiserCreateDto, Organiser.class);
+
+	    // Hash the password before saving
+	    organiser.setPassword(passwordEncoder.encode(organiserCreateDto.getPassword()));
+
 	    organiser.setImageURL(url);
 
 	    organiser = organiserDao.save(organiser); // persist and get generated ID
@@ -63,21 +90,26 @@ public class OrganiserServiceImpl implements OrganiserService {
 	    return organiserDto;
 	}
 
-	@Override
-	public OrganiserDto validateOrganiser(OrganiserLoginDto organiserLoginDto) {
-		// get email from database
-		Organiser organiser = organiserDao.findByEmail(organiserLoginDto.getEmail())
-				.orElseThrow(() -> new ResourseNotFound("Organiser Not Found"));
+	 @Override
+	    public JwtResponse loginOrganiser(JwtRequest loginDto) {
+	        // Step 1: Authenticate
+	        Authentication authentication = authenticationManager.authenticate(
+	                new UsernamePasswordAuthenticationToken(loginDto.getEmail(), loginDto.getPassword())
+	        );
 
-		OrganiserDto organiserDto = modelMapper.map(organiser, OrganiserDto.class);
-		organiserDto.setOrgId(organiser.getId());
+	        SecurityContextHolder.getContext().setAuthentication(authentication);
+	        String token = jwtUtil.createToken(authentication);
 
-		if (!organiser.getPassword().equals(organiserLoginDto.getPassword())) {
-			throw new ResourseNotFound("In valid password");
-		}
-		return organiserDto;
-	}
+	        // Step 2: Fetch Organiser
+	        Organiser organiser = organiserDao.findByEmail(loginDto.getEmail())
+	                .orElseThrow(() -> new ResourseNotFound("Organiser not found with email: " + loginDto.getEmail()));
 
+	        // Step 3: Map to DTO
+	        OrganiserDto organiserDto = modelMapper.map(organiser, OrganiserDto.class);
+            organiserDto.setOrgId(organiser.getId());
+	        // Step 4: Build Response
+	        return new JwtResponse(token, loginDto.getEmail(), "ROLE_ORGANISER", null, organiserDto);
+	    }
 
 	@Override
 	public List<Organiser> getAllOrganisers() {
@@ -103,31 +135,37 @@ public class OrganiserServiceImpl implements OrganiserService {
 		return new ApiResponse("Organiser details updated successfully " + organiser.getId());
 	}
 
-    public ApiResponse changePassword(Long id, ChangePasswordDto dto) {
-        Organiser organiser = organiserDao.findById(id)
-            .orElseThrow(() -> new ResourseNotFound("Organiser not found"));
+	@Override
+	public ApiResponse changePassword(Long id, ChangePasswordDto dto) {
+	    Organiser organiser = organiserDao.findById(id)
+	        .orElseThrow(() -> new ResourseNotFound("Organiser not found"));
 
-        if (!organiser.getPassword().equals(dto.getCurrentPassword())) {
-            throw new ChangePasswordException("Current password is incorrect");
-        }
+	    //  Check if current password matches (encoded check)
+	    if (!passwordEncoder.matches(dto.getCurrentPassword(), organiser.getPassword())) {
+	        throw new ChangePasswordException("Current password is incorrect");
+	    }
 
-        if (!dto.getNewPassword().equals(dto.getConfirmPassword())) {
-            throw new ChangePasswordException("New password and confirm password do not match");
-        }
+	    //  Ensure new and confirm match
+	    if (!dto.getNewPassword().equals(dto.getConfirmPassword())) {
+	        throw new ChangePasswordException("New password and confirm password do not match");
+	    }
 
-        if (dto.getCurrentPassword().equals(dto.getNewPassword())) {
-            throw new ChangePasswordException("New password cannot be the same as the current password");
-        }
+	    //  Ensure new password is not same as current
+	    if (passwordEncoder.matches(dto.getNewPassword(), organiser.getPassword())) {
+	        throw new ChangePasswordException("New password cannot be the same as the current password");
+	    }
 
-        organiser.setPassword(dto.getNewPassword());
-        organiserDao.save(organiser);
+	    // Encode the new password before saving
+	    organiser.setPassword(passwordEncoder.encode(dto.getNewPassword()));
+	    organiserDao.save(organiser);
 
-        return new ApiResponse("Password updated successfully for organiser ID: " + organiser.getId());
-    }
+	    return new ApiResponse("Password updated successfully for organiser ID: " + organiser.getId());
+	}
+
 
 	@Override
-	public ApiResponse deleteOrganiser(String org_company_name) {
-		Organiser organiser = organiserDao.findByOrganiserCompanyName(org_company_name)
+	public ApiResponse deleteOrganiser(Long id) {
+		Organiser organiser = organiserDao.findById(id)
 				.orElseThrow(() -> new ResourseNotFound("Organiser Not Found"));
 		// soft delete
 		organiser.setDeleted(true);

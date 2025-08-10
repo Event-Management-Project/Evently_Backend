@@ -5,13 +5,19 @@ import com.project.dto.ChangePasswordDto;
 import com.project.dto.CustomerCreateDto;
 import com.project.dto.CustomerDto;
 import com.project.dto.CustomerLoginDto;
+import com.project.dto.JwtRequest;
+import com.project.dto.JwtResponse;
 import com.project.entities.Customer;
 
 import java.util.List;
 
 public interface CustomerService {
+	
+	 JwtResponse loginCustomer(JwtRequest loginDto);
+	 
 	CustomerDto saveCustomer(CustomerCreateDto customer);
-	CustomerDto validateCustomer(CustomerLoginDto customerDetails);
+//	CustomerDto validateCustomer(JwtResponse customerDetails);
+	
     List<Customer> getAllCustomerForEvent(Long id);
     ApiResponse updateProfile(Long id, CustomerDto customerDto);
     ApiResponse changePassword(Long id, ChangePasswordDto changePasswordDto);
