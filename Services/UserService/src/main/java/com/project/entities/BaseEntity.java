@@ -37,7 +37,7 @@ public class BaseEntity {
 	@NotNull
 	private String phoneNumber;
 
-	@Column(name = "email", length = 25)
+	 @Column(unique = true, nullable = false)
 	@NotNull
 	private String email;
 

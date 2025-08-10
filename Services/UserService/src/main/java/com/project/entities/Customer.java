@@ -24,6 +24,9 @@ public class Customer extends BaseEntity{
     @Column(name = "gender")
     @NotNull
     private GenderEnum gender;
+    
+    @Transient // Used only in Java, not saved in DB
+    private UserRole role;
 
 
 }

@@ -5,6 +5,8 @@ import com.project.dto.OrganiserCreateDto;
 import com.project.dto.OrganiserDto;
 import com.project.dto.OrganiserLoginDto;
 import com.project.dto.ChangePasswordDto;
+import com.project.dto.JwtRequest;
+import com.project.dto.JwtResponse;
 import com.project.dto.OrganiserUpdateDto;
 import com.project.entities.Organiser;
 
@@ -14,7 +16,9 @@ import java.util.Optional;
 public interface OrganiserService {
 	OrganiserDto saveOrganiser(OrganiserCreateDto organiser);
 
-    OrganiserDto validateOrganiser(OrganiserLoginDto organiserDetails);
+//    OrganiserDto validateOrganiser(OrganiserLoginDto organiserDetails);
+	
+	JwtResponse loginOrganiser(JwtRequest loginDto);
 
 	List<Organiser> getAllOrganisers();
 
@@ -24,7 +28,7 @@ public interface OrganiserService {
 
 	ApiResponse changePassword(Long id, ChangePasswordDto passwordDto);
 
-	ApiResponse deleteOrganiser(String org_company_name);
+	ApiResponse deleteOrganiser(Long id);
 
 	List<Organiser> filterOrganiserContainaningAddress(String address);
 
