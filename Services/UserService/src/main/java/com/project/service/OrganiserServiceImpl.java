@@ -81,9 +81,9 @@ public class OrganiserServiceImpl implements OrganiserService {
 
 	    // Prepare response DTO
 	    OrganiserDto organiserDto = new OrganiserDto();
-	    organiserDto.setOrgId(organiser.getId());
 	    organiserDto.setOrganiserCompanyName(organiser.getOrganiserCompanyName());
 	    organiserDto.setAddress(organiser.getAddress());
+	    organiserDto.setOrgId(organiser.getId());
 	    organiserDto.setEmail(organiser.getEmail());
 	    organiserDto.setPhoneNumber(organiser.getPhoneNumber());
 
@@ -106,7 +106,8 @@ public class OrganiserServiceImpl implements OrganiserService {
 
 	        // Step 3: Map to DTO
 	        OrganiserDto organiserDto = modelMapper.map(organiser, OrganiserDto.class);
-            organiserDto.setOrgId(organiser.getId());
+		    organiserDto.setOrgId(organiser.getId());
+
 	        // Step 4: Build Response
 	        return new JwtResponse(token, loginDto.getEmail(), "ROLE_ORGANISER", null, organiserDto);
 	    }
@@ -126,10 +127,8 @@ public class OrganiserServiceImpl implements OrganiserService {
 	public ApiResponse updateProfile(Long id, OrganiserUpdateDto organiserDto) {
 		Organiser organiser = organiserDao.findById(id).orElseThrow(() -> new ResourseNotFound("organiser not found"));
 
-		// Mapping : dto --> entity
 		modelMapper.map(organiserDto, organiser);
 
-//        updatedOrganiser.setUpdatedOn(organiser.getUpdatedOn());
 		organiserDao.save(organiser);
 
 		return new ApiResponse("Organiser details updated successfully " + organiser.getId());

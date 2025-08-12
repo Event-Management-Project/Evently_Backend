@@ -1,6 +1,7 @@
 package com.project.controller;
 
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,6 +24,7 @@ import com.project.dto.EventEditDTO;
 import com.project.dto.EventResponseDTO;
 import com.project.external.entities.CustomerReviews;
 import com.project.external.entities.EventAttendee;
+import com.project.external.entities.OrganiserDashboardDTO;
 import com.project.service.EventService;
 
 import lombok.AllArgsConstructor;
@@ -132,4 +134,26 @@ public class EventController {
 	            .body(customerReviews);
 	}
 	
+	@GetMapping("/dashboard/{orgId}")
+	public ResponseEntity<OrganiserDashboardDTO> getOrganiserDashboard(@PathVariable Long orgId){
+		OrganiserDashboardDTO organiserDashboardDto = eventService.getOrganiserDashboard(orgId);
+		return ResponseEntity.status(HttpStatus.OK)
+				.body(organiserDashboardDto);
+	}
+	
+	@GetMapping("/monthly-events/{orgId}")
+    public ResponseEntity<Map<String, Long>> getMonthlyEvents(@PathVariable Long orgId) {
+		Map<String, Long> monthlyEventsDto = eventService.getMonthlyEvents(orgId); 
+		
+        return ResponseEntity.status(HttpStatus.OK)
+				.body(monthlyEventsDto);
+    }
+	
+	@GetMapping("/monthly-revenue/{orgId}")
+	public ResponseEntity<Map<String, Long>> getMonthlyRevenue(@PathVariable Long orgId){
+			Map<String, Long> monthlyRevenueDto = eventService.getMonthlyRevenue(orgId); 
+		
+        return ResponseEntity.status(HttpStatus.OK)
+				.body(monthlyRevenueDto);
+	}
 }

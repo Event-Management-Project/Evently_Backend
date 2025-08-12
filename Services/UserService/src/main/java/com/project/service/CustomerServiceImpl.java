@@ -60,7 +60,7 @@ public class CustomerServiceImpl implements CustomerService {
 	    // Save entity
 	    customerDao.save(customer);//This forces Hibernate to hit the DB immediately and populate the generated ID.
 	    System.out.println("Saved customer ID: " + customer.getId());
-
+	    
 	    // Map Entity → Response DTO
 	    CustomerDto dto = modelMapper.map(customer, CustomerDto.class);
 	    dto.setCstId(customer.getId());
@@ -87,8 +87,7 @@ public class CustomerServiceImpl implements CustomerService {
 
 	        // Step 5: Map to DTO
 	        CustomerDto customerDto = modelMapper.map(customer, CustomerDto.class);
-            customerDto.setCstId(customer.getId());
-	         
+	        customerDto.setCstId(customer.getId()); 
 	        // Step 6: Return JWT Response
 	        return new JwtResponse(token, loginDto.getEmail(), "ROLE_CUSTOMER", customerDto, null);
 	    }
@@ -104,6 +103,7 @@ public class CustomerServiceImpl implements CustomerService {
 				.orElseThrow(() -> new ResourseNotFound("Customer not found with id " + id));
 
 		modelMapper.map(customerDto, existingCustomer);
+		customerDto.setCstId(existingCustomer.getId());
 
 		existingCustomer.setUpdatedOn(LocalDateTime.now());
 
@@ -156,7 +156,6 @@ public class CustomerServiceImpl implements CustomerService {
 		Customer customer = customerDao.findById(cstId).orElseThrow();
 		
 		CustomerDto customerResp = modelMapper.map(customer, CustomerDto.class); 
-		customerResp.setCstId(cstId);
 		
 		return customerResp;
 	}

@@ -54,7 +54,6 @@ public class BookingServiceImpl implements BookingService {
 
 		EventResponseDTO event = getEventById(eventId);
 
-		// To call notification Service
 		NotificationDTO notificationCustomer = new NotificationDTO();
 		notificationCustomer.setSubject("Booked the Event");
 		notificationCustomer.setDescription("You booked for event " + event.getEventTitle());
@@ -66,7 +65,6 @@ public class BookingServiceImpl implements BookingService {
 		notificationOrganiser.setDescription(
 				"The Customer " + customer.getCustomerName() + " has booked your event " + event.getEventTitle());
 
-		// Call Notification service
 		notificationService.addNotificationCustomer(cstId, notificationCustomer);
 		notificationService.addNotificationOrganiser(event.getOrgId(), notificationOrganiser);
 

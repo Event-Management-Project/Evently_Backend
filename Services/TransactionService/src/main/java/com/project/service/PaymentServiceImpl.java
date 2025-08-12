@@ -58,6 +58,8 @@ public class PaymentServiceImpl implements PaymentService {
 
       Booking booking = bookingDao.findById(bkgId)
           .orElseThrow(() -> new RuntimeException("Booking not found"));
+      
+      
 
       JSONObject options = new JSONObject();
       options.put("amount", (int) (dto.getAmount() * 100)); 
@@ -80,6 +82,7 @@ public class PaymentServiceImpl implements PaymentService {
       e.printStackTrace();
       return new ApiResponse("Payment initiation failed: " + e.getMessage());
     }
+    
   }
 
   @Override
@@ -104,6 +107,7 @@ public class PaymentServiceImpl implements PaymentService {
       booking.setStatus(BookingStatus.CONFIRMED);
       bookingDao.save(booking);
 
+      
       ticketService.generateTicket(booking.getId());
 
       return new ApiResponse("Payment verified & booking confirmed");
