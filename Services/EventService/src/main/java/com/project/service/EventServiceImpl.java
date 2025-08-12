@@ -37,6 +37,8 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -545,59 +547,61 @@ public class EventServiceImpl implements EventService {
 	}
 
 	@Override
-	public List<CustomerReviews> getCustomerReviews(Long orgId) {
-		List<CustomerReviews> customerReviewsList = new ArrayList<>();
+public List<CustomerReviews> getCustomerReviews(Long orgId) {
+    List<CustomerReviews> customerReviewsList = new ArrayList<>();
 
-		List<EventResponseDTO> eventResponseList = getEventsByOrganiserId(orgId);
+    List<EventResponseDTO> eventResponseList = getEventsByOrganiserId(orgId);
 
-		for (EventResponseDTO eventResponse : eventResponseList) {
+    for (EventResponseDTO eventResponse : eventResponseList) {
+        try {
+            Events event = eventdao.findById(eventResponse.getEventId())
+                    .orElseThrow(() -> new IllegalArgumentException(
+                            "Event not found with ID: " + eventResponse.getEventId()));
 
-			try {
-				Events event = eventdao.findById(eventResponse.getEventId())
-						.orElseThrow(() -> new IllegalArgumentException("Event not found with ID: " + eventResponse.getEventId()));
+            List<Reviews> reviewList = getReviewsByEventId(event.getId());
+            if (reviewList == null || reviewList.isEmpty()) {
+                continue; // skip events with no reviews
+            }
 
-				List<Reviews> reviewList = getReviewsByEventId(event.getId());
-				if (reviewList == null || reviewList.isEmpty()) {
-					return customerReviewsList;
-				}
+            for (Reviews review : reviewList) {
+                try {
+                    String cstId = review.getCustomerId();
+                    if (cstId == null || cstId.isEmpty()) {
+                        continue;
+                    }
 
-				for (Reviews review : reviewList) {
-					try {
-						String cstId = review.getCustomerId();
-						if (cstId == null || cstId.isEmpty()) {
-							continue;
-						}
+                    Long customerId = Long.valueOf(cstId);
+                    Customer customer = getCustomerById(customerId);
+                    if (customer == null) {
+                        continue;
+                    }
 
-						Long customerId = Long.valueOf(cstId);
-						Customer customer = getCustomerById(customerId);
-						if (customer == null) {
-							continue;
-						}
+                    CustomerReviews customerReviews = new CustomerReviews();
+                    customerReviews.setCustomerName(customer.getCustomerName());
+                    customerReviews.setEmail(customer.getEmail());
+                    customerReviews.setEventTitle(event.getEventTitle());
+                    customerReviews.setStar(review.getStar());
+                    customerReviews.setSubject(review.getSubject());
+                    customerReviews.setDescription(review.getDescription());
 
-						CustomerReviews customerReviews = new CustomerReviews();
-						customerReviews.setCustomerName(customer.getCustomerName());
-						customerReviews.setEmail(customer.getEmail());
-						customerReviews.setEventTitle(event.getEventTitle());
-						customerReviews.setStar(review.getStar());
-						customerReviews.setSubject(review.getSubject());
-						customerReviews.setDescription(review.getDescription());
+                    customerReviewsList.add(customerReviews);
 
-						customerReviewsList.add(customerReviews);
+                } catch (NumberFormatException e) {
+                    System.err.println("Invalid customer ID format: " + review.getCustomerId());
+                } catch (Exception e) {
+                    System.err.println("Error processing review: " + e.getMessage());
+                }
+            }
 
-					} catch (NumberFormatException e) {
-						System.err.println("Invalid customer ID format: " + review.getCustomerId());
-					} catch (Exception e) {
-						System.err.println("Error processing review: " + e.getMessage());
-					}
-				}
+        } catch (Exception e) {
+            System.err.println("Error fetching customer reviews: " + e.getMessage());
+        }
+    }
 
-			} catch (Exception e) {
-				System.err.println("Error fetching customer reviews: " + e.getMessage());
-			}
-		}
+    return customerReviewsList;
+}
 
-		return customerReviewsList;
-	}
+
 
 	// ****************************************
 	// External Service call
@@ -618,9 +622,13 @@ public class EventServiceImpl implements EventService {
 	}
 
 	@Override
-	public List<Reviews> getReviewsByEventId(Long eventid) {
-		ResponseEntity<List<Reviews>> reviewList = nodeService.getUserReviews(eventid);
+	public List<Reviews> getReviewsByEventId(Long eventId) {
+	    Map<String, String> requestBody = new HashMap<>();
+	    requestBody.put("eventId", eventId.toString());
 
-		return reviewList.getBody();
+	    ResponseEntity<List<Reviews>> reviewList = nodeService.getUserReviews(requestBody);
+
+	    return reviewList != null ? reviewList.getBody() : Collections.emptyList();
 	}
+
 }

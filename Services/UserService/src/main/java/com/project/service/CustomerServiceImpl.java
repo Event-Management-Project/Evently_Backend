@@ -63,7 +63,6 @@ public class CustomerServiceImpl implements CustomerService {
 
 	    // Map Entity → Response DTO
 	    CustomerDto dto = modelMapper.map(customer, CustomerDto.class);
-	    dto.setCstId(customer.getId());
 	    return dto;
 	}
 
@@ -87,7 +86,6 @@ public class CustomerServiceImpl implements CustomerService {
 
 	        // Step 5: Map to DTO
 	        CustomerDto customerDto = modelMapper.map(customer, CustomerDto.class);
-            customerDto.setCstId(customer.getId());
 	         
 	        // Step 6: Return JWT Response
 	        return new JwtResponse(token, loginDto.getEmail(), "ROLE_CUSTOMER", customerDto, null);
@@ -156,7 +154,6 @@ public class CustomerServiceImpl implements CustomerService {
 		Customer customer = customerDao.findById(cstId).orElseThrow();
 		
 		CustomerDto customerResp = modelMapper.map(customer, CustomerDto.class); 
-		customerResp.setCstId(cstId);
 		
 		return customerResp;
 	}

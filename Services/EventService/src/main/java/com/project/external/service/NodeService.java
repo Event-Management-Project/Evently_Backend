@@ -1,6 +1,7 @@
 package com.project.external.service;
 
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.ResponseEntity;
@@ -15,18 +16,14 @@ import com.project.external.entities.Reviews;
 
 @FeignClient(name = "NODE-SERVICE", url = "http://localhost:4000")
 public interface NodeService {
-	@GetMapping("/reviews/event")
-	public ResponseEntity<List<Reviews>> getUserReviews(@RequestHeader("eventId") Long eventId);
-	
+	@PostMapping("/reviews/event")
+	ResponseEntity<List<Reviews>> getUserReviews(@RequestBody Map<String, String> body);
+
 	@PostMapping(value = "/notification/customer", consumes = "application/json")
-    ApiResponse addNotificationCustomer(
-        @RequestHeader("customerid") Long customerId,
-        @RequestBody NotificationDTO notificationDTO
-    );
-    
-    @PostMapping(value = "/notification/organiser", consumes = "application/json")
-    ApiResponse addNotificationOrganiser(
-            @RequestHeader("organiserid") Long organiserId,
-            @RequestBody NotificationDTO notificationDTO
-        );
+	ApiResponse addNotificationCustomer(@RequestHeader("customerid") Long customerId,
+			@RequestBody NotificationDTO notificationDTO);
+
+	@PostMapping(value = "/notification/organiser", consumes = "application/json")
+	ApiResponse addNotificationOrganiser(@RequestHeader("organiserid") Long organiserId,
+			@RequestBody NotificationDTO notificationDTO);
 }

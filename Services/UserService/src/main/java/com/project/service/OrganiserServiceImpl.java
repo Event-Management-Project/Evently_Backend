@@ -81,7 +81,6 @@ public class OrganiserServiceImpl implements OrganiserService {
 
 	    // Prepare response DTO
 	    OrganiserDto organiserDto = new OrganiserDto();
-	    organiserDto.setOrgId(organiser.getId());
 	    organiserDto.setOrganiserCompanyName(organiser.getOrganiserCompanyName());
 	    organiserDto.setAddress(organiser.getAddress());
 	    organiserDto.setEmail(organiser.getEmail());
@@ -106,7 +105,6 @@ public class OrganiserServiceImpl implements OrganiserService {
 
 	        // Step 3: Map to DTO
 	        OrganiserDto organiserDto = modelMapper.map(organiser, OrganiserDto.class);
-            organiserDto.setOrgId(organiser.getId());
 	        // Step 4: Build Response
 	        return new JwtResponse(token, loginDto.getEmail(), "ROLE_ORGANISER", null, organiserDto);
 	    }

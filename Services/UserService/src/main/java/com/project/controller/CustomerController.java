@@ -33,11 +33,6 @@ public class CustomerController {
                 body(customerService.saveCustomer(customerdto));
     }
 
-//    @PostMapping("/login")
-//    ResponseEntity<CustomerDto> loginCustomer(@RequestBody JwtResponse customerLoginDto ){
-//        return ResponseEntity.status(HttpStatus.OK).
-//                body(customerService.validateCustomer(customerLoginDto));
-//    }
 
 
     @PutMapping("/update/{customerId}")
