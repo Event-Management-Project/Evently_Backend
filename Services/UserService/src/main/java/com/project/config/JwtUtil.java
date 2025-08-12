@@ -37,11 +37,6 @@ public class JwtUtil {
     }
     
 
-//  @PostConstruct
-//  public void init() {
-//     byte[] keyBytes = Decoders.BASE64.decode(jwtSecret);
-//       jwtKey = Keys.hmacShaKeyFor(keyBytes);
-//      }
 
     // ---------- Create Token - // 1. Subject: email                                 | 2.Role claim: comma-separated roles (e.g., "ROLE_CUSTOMER")
                                  // 3. Expiration: current time + configured lifetime | 4.Signature: HMAC SHA-256 using jwtSecret
@@ -64,7 +59,7 @@ public class JwtUtil {
     }
 
 
-    // ---------- Validate Token ----------
+//    // ---------- Validate Token ----------
     public Authentication validateToken(String token) {
         Claims claims = Jwts.parserBuilder()
                 .setSigningKey(jwtKey)
