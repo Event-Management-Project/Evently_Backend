@@ -14,7 +14,7 @@ import com.project.dto.ApiResponse;
 import com.project.external.entities.NotificationDTO;
 import com.project.external.entities.Reviews;
 
-@FeignClient(name = "NODE-SERVICE", url = "http://localhost:4000")
+@FeignClient(name = "NODE-SERVICE")
 public interface NodeService {
 	@PostMapping("/reviews/event")
 	ResponseEntity<List<Reviews>> getUserReviews(@RequestBody Map<String, String> body);

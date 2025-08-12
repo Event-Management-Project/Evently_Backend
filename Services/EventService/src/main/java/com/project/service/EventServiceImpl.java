@@ -16,6 +16,7 @@ import com.project.dto.EventCreateDTO;
 import com.project.dto.EventDetailDTO;
 import com.project.dto.EventEditDTO;
 import com.project.dto.EventResponseDTO;
+import com.project.dto.MonthlyEventsDTO;
 import com.project.entities.Category;
 import com.project.entities.EventImage;
 import com.project.entities.Events;
@@ -28,6 +29,7 @@ import com.project.external.entities.NotificationDTO;
 import com.project.external.service.BookingService;
 import com.project.external.service.NodeService;
 import com.project.external.entities.Organiser;
+import com.project.external.entities.OrganiserDashboardDTO;
 import com.project.external.entities.Reviews;
 import com.project.external.service.UserService;
 
@@ -35,13 +37,18 @@ import lombok.AllArgsConstructor;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.time.format.TextStyle;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -388,6 +395,11 @@ public class EventServiceImpl implements EventService {
 		Events event = eventdao.findByIdAndStartDateTimeAfter(evt_id, currentDate)
 				.orElseThrow(() -> new RuntimeException("Event not found or has already started — cannot delete past events."));
 
+		List<EventImage> eventImageList = eventImageDao.findByEventId(evt_id);
+		for(EventImage eventImage: eventImageList) {
+			eventImageDao.deleteById(eventImage.getId());
+		}
+		
 		event.setDeleted(true);
 		
 		List<Booking> bookingList = bookingService.getBookingByEvent(evt_id).getBody();
@@ -603,6 +615,8 @@ public List<CustomerReviews> getCustomerReviews(Long orgId) {
 
 
 
+	
+
 	// ****************************************
 	// External Service call
 
@@ -629,6 +643,89 @@ public List<CustomerReviews> getCustomerReviews(Long orgId) {
 	    ResponseEntity<List<Reviews>> reviewList = nodeService.getUserReviews(requestBody);
 
 	    return reviewList != null ? reviewList.getBody() : Collections.emptyList();
+	}
+
+
+	@Override
+	public OrganiserDashboardDTO getOrganiserDashboard(Long orgId) {
+        List<Events> events = eventdao.findByOrganiserIdAndIsDeletedFalse(orgId);
+        
+        long totalEvents = events.size();
+        LocalDateTime now = LocalDateTime.now();
+
+        long activeEvents = events.stream()
+                .filter(e -> !e.getStartDateTime().isAfter(now) && !e.getEndDateTime().isBefore(now))
+                .count();
+
+        long pastEvents = events.stream()
+                .filter(e -> e.getEndDateTime().isBefore(now))
+                .count();
+        
+        double totalRevenue = 0;
+        long totalTicketsSold = 0;
+        
+        for (Events event : events) {
+            List<Booking> bookings = bookingService.getBookingByEvent(event.getId()).getBody();
+
+            if (bookings != null) {
+                for (Booking booking : bookings) {
+                    totalTicketsSold += booking.getTotalAttendee();
+                    totalRevenue += booking.getTotalAttendee() * event.getTicketPrice();
+                }
+            }
+        }
+
+        return new OrganiserDashboardDTO(totalEvents, activeEvents, pastEvents, totalRevenue, totalTicketsSold);
+	}
+
+	@Override
+	public Map<String, Long> getMonthlyEvents(Long orgId) {
+		List<Events> events = eventdao.findByOrganiserIdAndIsDeletedFalse(orgId);
+
+		Map<String, Long> countPerMonth = events.stream()
+			    .collect(Collectors.groupingBy(
+			        e -> (String) e.getStartDateTime().getMonth().getDisplayName(TextStyle.FULL, Locale.ENGLISH),
+			        Collectors.counting()
+			    ));
+		
+		return countPerMonth;
+	}
+
+	@Override
+	public Map<String, Long> getMonthlyRevenue(Long orgId) {
+	    List<Events> events = eventdao.findByOrganiserIdAndIsDeletedFalse(orgId);
+
+	    Map<String, Long> revenuePerMonth = new HashMap<>();
+
+	    for (Events event : events) {
+	        // Fetch bookings for this event using Feign client
+	        ResponseEntity<List<Booking>> response = bookingService.getBookingByEvent(event.getId());
+	        List<Booking> bookings = response.getBody();
+
+	        if (bookings != null) {
+	            DateTimeFormatter formatter = DateTimeFormatter.ISO_DATE_TIME;
+
+	            for (Booking booking : bookings) {
+	                String bookingDateStr = booking.getBookingDate();
+	                if (bookingDateStr != null && booking.getTotalAttendee() != null) {
+	                    try {
+	                        LocalDateTime bookingDate = LocalDateTime.parse(bookingDateStr, formatter);
+
+	                        long revenue = Math.round(event.getTicketPrice() * booking.getTotalAttendee());
+
+	                        String month = bookingDate.getMonth().getDisplayName(TextStyle.FULL, Locale.ENGLISH);
+
+	                        revenuePerMonth.merge(month, revenue, Long::sum);
+	                    } catch (DateTimeParseException e) {
+	                        System.err.println("Invalid booking date format: " + bookingDateStr);
+	                    }
+	                }
+	            }
+	        }
+
+	    }
+
+	    return revenuePerMonth;
 	}
 
 }
