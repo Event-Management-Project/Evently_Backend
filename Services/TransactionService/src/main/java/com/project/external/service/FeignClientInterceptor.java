@@ -1,12 +1,13 @@
 package com.project.external.service;
 import feign.RequestInterceptor;
 import feign.RequestTemplate;
+
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
-import jakarta.servlet.http.HttpServletRequest;
 
 @Component
 public class FeignClientInterceptor implements RequestInterceptor {
@@ -21,7 +22,7 @@ public class FeignClientInterceptor implements RequestInterceptor {
             
             System.out.println("\n FeignClientInterceptor called, Authorization header: " + authHeader + "\n");
             
-            if (authHeader != null) {
+          if (authHeader != null) {
                 template.header("Authorization", authHeader);
             }
         }
