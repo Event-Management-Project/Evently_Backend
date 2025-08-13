@@ -156,4 +156,21 @@ public class EventController {
         return ResponseEntity.status(HttpStatus.OK)
 				.body(monthlyRevenueDto);
 	}
+	
+	@PutMapping("/{eventId}/decrement-capacity")
+	public ResponseEntity<ApiResponse> decrementCapacity(@PathVariable Long eventId,
+	        @RequestParam Long attendees){
+		ApiResponse response = eventService.decrementCapacity(eventId, attendees);
+		return ResponseEntity.status(HttpStatus.OK)
+				.body(response);
+	}
+	
+	@GetMapping("/{eventId}/has-capacity")
+	public ResponseEntity<Boolean> hasCapacity(
+	        @PathVariable Long eventId,
+	        @RequestParam Long attendees){
+
+		return ResponseEntity.ok(eventService.hasCapacity(eventId, attendees));
+	}
+	
 }

@@ -18,6 +18,7 @@ import com.project.entities.Booking;
 import com.project.entities.BookingStatus;
 import com.project.entities.Payment;
 import com.project.entities.PaymentStatus;
+import com.project.external.service.EventService;
 import com.razorpay.Order;
 import com.razorpay.RazorpayClient;
 import com.razorpay.RazorpayException;
@@ -42,6 +43,7 @@ public class PaymentServiceImpl implements PaymentService {
   private final BookingDAO bookingDao;
   private final PaymentDAO paymentDao;
   private final TicketService ticketService;
+  private final EventService eventService; 
 
  
 
@@ -107,6 +109,9 @@ public class PaymentServiceImpl implements PaymentService {
       booking.setStatus(BookingStatus.CONFIRMED);
       bookingDao.save(booking);
 
+      Long eventId = booking.getEvtId();
+      Long attendees = payment.getAttendeeCount();
+      eventService.decrementCapacity(eventId, attendees);
       
       ticketService.generateTicket(booking.getId());
 

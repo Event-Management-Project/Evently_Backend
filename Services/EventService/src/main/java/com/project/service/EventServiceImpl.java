@@ -728,4 +728,29 @@ public List<CustomerReviews> getCustomerReviews(Long orgId) {
 	    return revenuePerMonth;
 	}
 
+	@Override
+	public ApiResponse decrementCapacity(Long eventId, Long attendees) {
+		Events event = eventdao.findById(eventId)
+	            .orElseThrow(() -> new RuntimeException("Event not found"));
+		
+		if (event.getRemainingCapacity() < attendees) {
+	        return new ApiResponse("Not enough capacity");
+	    }
+
+		System.out.println("event: "+event.getRemainingCapacity());
+		
+	    event.setRemainingCapacity(event.getRemainingCapacity() - attendees);
+	    eventdao.save(event);
+		
+		return new ApiResponse("Capacity updated successfully");
+	}
+
+	@Override
+	public Boolean hasCapacity(Long eventId, Long attendees) {
+		Events event = eventdao.findById(eventId)
+	            .orElseThrow(() -> new RuntimeException("Event not found with id: " + eventId));
+
+	    return event.getRemainingCapacity() >= attendees;
+	}
+
 }

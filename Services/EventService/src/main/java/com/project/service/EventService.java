@@ -65,5 +65,9 @@ public interface EventService {
 	Map<String, Long> getMonthlyEvents(Long orgId);
 
 	Map<String, Long> getMonthlyRevenue(Long orgId);
+
+	ApiResponse decrementCapacity(Long eventId, Long attendees);
+
+	Boolean hasCapacity(Long eventId, Long attendees);
 	
 }
