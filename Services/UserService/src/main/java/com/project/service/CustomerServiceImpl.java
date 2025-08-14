@@ -11,20 +11,15 @@ import com.project.dto.ApiResponse;
 import com.project.dto.ChangePasswordDto;
 import com.project.dto.CustomerCreateDto;
 import com.project.dto.CustomerDto;
-import com.project.dto.CustomerLoginDto;
 import com.project.dto.JwtRequest;
 import com.project.dto.JwtResponse;
 import com.project.entities.Customer;
-import com.project.entities.Organiser;
 import com.project.entities.UserRole;
 import com.project.exceptions.ChangePasswordException;
 import com.project.exceptions.ResourseNotFound;
 
-import jakarta.ws.rs.BadRequestException;
-
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -158,5 +153,11 @@ public class CustomerServiceImpl implements CustomerService {
 		CustomerDto customerResp = modelMapper.map(customer, CustomerDto.class); 
 		
 		return customerResp;
+	}
+
+
+	@Override
+	public Long getCustomerCount() {
+		return customerDao.count();
 	}
 }

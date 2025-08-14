@@ -69,5 +69,7 @@ public interface EventService {
 	ApiResponse decrementCapacity(Long eventId, Long attendees);
 
 	Boolean hasCapacity(Long eventId, Long attendees);
+
+	Long getEventCount();
 	
 }

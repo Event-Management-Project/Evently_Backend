@@ -753,4 +753,9 @@ public List<CustomerReviews> getCustomerReviews(Long orgId) {
 	    return event.getRemainingCapacity() >= attendees;
 	}
 
+	@Override
+	public Long getEventCount() {
+		return eventdao.count();
+	}
+
 }

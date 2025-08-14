@@ -3,13 +3,10 @@ package com.project.controller;
 import com.project.dto.ChangePasswordDto;
 import com.project.dto.CustomerCreateDto;
 import com.project.dto.CustomerDto;
-import com.project.dto.CustomerLoginDto;
-import com.project.dto.JwtResponse;
 import com.project.service.CustomerService;
 
 import lombok.AllArgsConstructor;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -61,6 +58,9 @@ public class CustomerController {
                 body(customerService.getCustomerById(cstId));
     }
     
-
+    @GetMapping("/count-customer")
+    ResponseEntity<Long> getCustomerCount(){
+    	return ResponseEntity.ok(customerService.getCustomerCount());
+    }
 
 }

@@ -173,4 +173,9 @@ public class EventController {
 		return ResponseEntity.ok(eventService.hasCapacity(eventId, attendees));
 	}
 	
+	@GetMapping("/count-event")
+	public ResponseEntity<Long> getCustomerCount(){
+    	return ResponseEntity.ok(eventService.getEventCount());
+    }
+	
 }

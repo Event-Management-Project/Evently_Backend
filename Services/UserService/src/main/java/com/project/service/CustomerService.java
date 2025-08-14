@@ -4,7 +4,6 @@ import com.project.dto.ApiResponse;
 import com.project.dto.ChangePasswordDto;
 import com.project.dto.CustomerCreateDto;
 import com.project.dto.CustomerDto;
-import com.project.dto.CustomerLoginDto;
 import com.project.dto.JwtRequest;
 import com.project.dto.JwtResponse;
 import com.project.entities.Customer;
@@ -24,4 +23,6 @@ public interface CustomerService {
     ApiResponse deleteCustomer(Long id);
 	List<Customer> getAllCustomers();
 	CustomerDto getCustomerById(Long cstId);
+
+	Long getCustomerCount();
 }
